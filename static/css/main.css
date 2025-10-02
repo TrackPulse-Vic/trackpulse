@@ -1,0 +1,88 @@
+body {
+    background-color: black;
+    color: white;
+    font-family: "Noto Sans", sans-serif;
+}
+
+.box-div {
+    border: 1px solid gray;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    background-color: #1e1e1e;
+    width: max-content;
+}
+
+.box-div h3 {
+    font-size: larger;
+}
+
+.log-entry label {
+    display: inline-block;
+    width: 100px;
+    font-weight: bold;
+}
+.log-entry input, .log-entry select, .log-entry textarea {
+    width: 200px;
+    padding: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #555;
+    border-radius: 3px;
+    background-color: #2e2e2e;
+    color: white;
+}
+
+.success {
+    color: #4CAF50;
+}
+
+.button-list a {
+    text-decoration: none;
+    color: white;
+}
+
+.button-list a {
+    display: inline;
+    font-size: large;
+    background-color: #2e2e2e;
+    border: gray 1px solid;
+    border-radius: 3px;
+    padding: 5px;
+    transition-duration: 0.5s;
+}
+
+.button-list a:hover {
+    transition-duration: 0.2s;
+    background-color: #3e3e3e;
+}
+
+.button-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: left;
+    gap: 10px;
+}
+
+/* Mobile Style */
+@media (max-width: 600px) {
+    h1 {
+        text-align: center;
+    }
+    .box-div {
+        width: 90vw;
+    }
+    .log-entry input, .log-entry select, .log-entry textarea {
+        width: 95%;
+    }
+    .button-list a {
+        flex: 1 1 calc(50% - 20px); /* Two buttons per row */
+        text-align: center;
+    }
+}
+
+.inline-svg {
+      width: 1em;
+      height: 1em;
+      vertical-align: top;
+      margin-right: 0.2em;
+}

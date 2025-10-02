@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>TrackPulse Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <h1>Welcome Xm9G!</h1>
+    <div class="box-div">
+        <h2>Log a trip</h2>
+        <h3>Victoria</h3>
+        <div class="button-list">
+            <a href="/log?mode=victrain"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Train.svg') }}" alt="Metro Train" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_RegionalTrain.svg') }}" alt="V/Line Train" class="inline-svg">Train</a>
+            <a href="/log?mode=victram"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Tram.svg') }}" alt="Tram" class="inline-svg">Tram</a>
+            <a href="/log?mode=vicbus"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Bus.svg') }}" alt="Bus" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Coach.svg') }}" alt="Coach" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_SkyBus.svg') }}" alt="SkyBus" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_FlexiRide.svg') }}" alt="FlexiRide" class="inline-svg">Bus</a>
+        </div>
+        <h3>New South Wales</h3>
+        <div class="button-list">
+            <a href="/log?mode=nswtrain"><img src="{{ url_for('static', filename='icons/tFnsw/Train_Mode_Colour_Background_400x400.png') }}" alt="Train" class="inline-svg"><img src="{{ url_for('static', filename='icons/tFnsw/Metro_Mode_Colour_Background_400x400.png') }}" alt="Metro" class="inline-svg">Train</a>
+            <a href="/log?mode=nswferry"><img src="{{ url_for('static', filename='icons/tFnsw/Ferry_Mode_Colour_Background_400x400.png') }}" alt="Ferry" class="inline-svg">Ferry</a>
+            <a href="/log?mode=nswbus"><img src="{{ url_for('static', filename='icons/tFnsw/Bus_Mode_Colour_Background_400x400.png') }}" alt="Bus" class="inline-svg">Bus</a>
+            <a href="/log?mode=nswlightrail"><img src="{{ url_for('static', filename='icons/tFnsw/LightRail_Mode_Colour_Background_400x400.png') }}" alt="Light Rail" class="inline-svg">Light Rail</a>
+        </div>
+        <h3>South Australia</h3>
+        <div class="button-list">
+            <a href="/log?mode=satrain"><img src="{{ url_for('static', filename='icons/adelaideMetro/Adelaide_train_logo.svg') }}" alt="Train" class="inline-svg">Train</a>
+            <a href="/log?mode=sabus"><img src="{{ url_for('static', filename='icons/adelaideMetro/Adelaide_bus_logo.svg') }}" alt="Bus" class="inline-svg">Bus</a>
+            <a href="/log?mode=satram"><img src="{{ url_for('static', filename='icons/adelaideMetro/Adelaide_tram_logo.svg') }}" alt="Tram" class="inline-svg">Tram</a>
+        </div>
+        <h3>Western Australia</h3>
+        <div class="button-list">
+            <a href="/log?mode=watrain">Train</a>
+            <a href="/log?mode=wabus">Bus</a>
+        </div>
+        <h3>ACT</h3>
+        <div class="button-list">
+            <a href="/log?mode=actlightrail"><img src="{{ url_for('static', filename='icons/ACT/Canberra_Metro_icon.svg') }}" alt="Light Rail" class="inline-svg">Light Rail</a>
+            <a href="/log?mode=actbus"><img src="{{ url_for('static', filename='icons/ACT/Canberra_Bus_icon.svg') }}" alt="Bus" class="inline-svg">Bus</a>
+        </div>
+    </div>
+</body>
+</html>
