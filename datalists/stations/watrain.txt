@@ -1,0 +1,88 @@
+Airport Central
+Alkimos
+Armadale
+Ashfield
+Aubin Grove
+Ballajura
+Bassendean
+Bayswater
+Beckenham
+Bull Creek
+Burswood
+Butler
+Canning Bridge
+Cannington
+Carlisle
+Challis
+City West
+Claisebrook
+Claremont
+Clarkson
+Cockburn Central
+Cottesloe
+Currambine
+Daglish
+East Guildford
+East Perth
+Edgewater
+Eglinton
+Elizabeth Quay
+Ellenbrook
+Fremantle
+Glendalough
+Gosnells
+Grant Street
+Greenwood
+Guildford
+High Wycombe
+Joondalup
+Karrakatta
+Kelmscott
+Kenwick
+Kwinana
+Lakelands
+Leederville
+Loch Street
+Maddington
+Mandurah
+Maylands
+McIver
+Meltham
+Midland
+Morley
+Mosman Park
+Mount Lawley
+Murdoch
+Noranda
+North Fremantle
+Oats Street
+Perth
+Perth Stadium
+Perth Underground
+Queens Park
+Redcliffe
+Rockingham
+Seaforth
+Shenton Park
+Sherwood
+Showgrounds
+Stirling
+Subiaco
+Success Hill
+Swanbourne
+Thornlie
+Victoria Park
+Victoria Street
+Warnbro
+Warwick
+Wellard
+West Leederville
+Whiteman Park
+Whitfords
+Woodbridge
+Yanchep
+Byford
+Nicholson Road
+Ranford Road
+Karnup
+Bennett Springs East

@@ -80,10 +80,17 @@ def logPage():
         },
 
     }
+    
+    # stations list
+    try:
+        with open(f'datalists/stations/{mode}.txt', 'r') as file:
+            stations = file.readlines()
+    except FileNotFoundError:
+        stations = []
 
     displayName = prettyMode.get(mode, None)
     categorizedLines = lineOptions.get(mode, {})
-    return render_template('log.html', mode=mode, displayName=displayName, lineOptions=categorizedLines)
+    return render_template('log.html', mode=mode, displayName=displayName, lineOptions=categorizedLines, stations=stations)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5002)
