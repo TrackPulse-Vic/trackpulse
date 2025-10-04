@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Log converter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <h1>Convert from the Discord bot format to the website format</h1>
+    {% if success %}
+        <p style="color: green;">{{ success }}</p>
+    {% endif %}
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    {% include 'navbar.html' %}
+    <div class="box-div">
+        <form action="/api/convert" method="post" class="log-entry" enctype="multipart/form-data">
+            <label for="file">Discord bot CSV file:</label>
+            <input type="file" id="file" name="file" accept=".csv"><br><br>
+            <label for="mode">Mode:</label>
+            <select id="mode" name="mode" required>
+                <option value="victrain">Victoria Train</option>
+                <option value="victram">Melbourne Tram</option>
+                <option value="vicbus">Bus</option>
+                <option value="nswtrain">New South Wales Train</option>
+                <option value="nswlightrail">New South Wales Light Rail</option>
+                <option value="satrain">South Australia Train</option>
+                <option value="satram">South Australia Tram</option>
+                <option value="watrain">Western Australia Train</option>
+                <option value="actlightrail">ACT Light Rail</option>
+                <option value="watrain">Western Australia Train</option>
+            </select><br><br>
+            <input type="submit" value="Convert">
+        </form>
+    </div>
+</html>

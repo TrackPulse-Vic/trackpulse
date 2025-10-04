@@ -11,6 +11,7 @@
 </style>
 
 <body>
+    {% include 'navbar.html' %}
     <h1>Log a {{displayName}} trip</h1>
     <div class="box-div">
         <h3 class="success">Your trip was successfully logged!</h3>
@@ -19,16 +20,20 @@
         <div class="log-entry">
             <form action="/submit_log" method="post">
                 <label for="Line">Line:</label>
-                <select id="line" name="line" required>
-                    <option value="">Select a line</option>
-                    {% for category, lines in lineOptions.items() %}
-                        <optgroup label="{{ category }}">
-                            {% for line in lines %}
-                                <option value="{{ line }}">{{ line }}</option>
-                            {% endfor %}
-                        </optgroup>
-                    {% endfor %}
-                </select><br><br>
+                {% if lineOptions|length > 0 %}
+                    <select id="line" name="line" required>
+                        <option value="">Select a line</option>
+                        {% for category, lines in lineOptions.items() %}
+                            <optgroup label="{{ category }}">
+                                {% for line in lines %}
+                                    <option value="{{ line }}">{{ line }}</option>
+                                {% endfor %}
+                            </optgroup>
+                        {% endfor %}
+                    </select><br><br>
+                {% else %}
+                    <input type="text" id="line" name="line" required><br><br>
+                {% endif %}
 
                 <label for="Number">Number:</label>
                 <input type="text" id="number" name="number" required><br><br>
@@ -48,7 +53,7 @@
                 <textarea id="notes" name="notes" rows="1" cols="1"></textarea><br><br>
 
                 <div class="overrides">
-                    <p>These options will be automatically filled based on your selections</p>
+                    <p>These options will be automatically filled based on your selections but you can override them if needed.</p>
                     <label for="date">Date:</label>
                     <input type="date" id="date" name="date" ><br><br>
 

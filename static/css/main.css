@@ -36,6 +36,10 @@ body {
     color: #4CAF50;
 }
 
+.error {
+    color: #f44336;
+}
+
 .button-list a {
     text-decoration: none;
     color: white;
@@ -49,6 +53,7 @@ body {
     border-radius: 3px;
     padding: 5px;
     transition-duration: 0.5s;
+    cursor:pointer;
 }
 
 .button-list a:hover {

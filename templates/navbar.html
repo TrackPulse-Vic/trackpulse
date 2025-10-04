@@ -1,0 +1,10 @@
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/navbar.css') }}">
+<nav class="navbar">
+  <ul>
+    <li><img src='{{url_for("static", filename="icons/logo.jpg")}}' class="logo", alt="Logo"></li>
+      <li><a href="{{ url_for('mainPage') }}">Home</a></li>
+      <li><a href="{{ url_for('dashboardPage') }}">Dashboard</a></li>
+      <li><a href="{{ url_for('convertPage') }}">Convert</a></li>
+      <li><a href="{{ url_for('logout') }}">Logout</a></li>
+  </ul>
+</nav>

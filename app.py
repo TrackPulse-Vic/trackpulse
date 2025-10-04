@@ -1,27 +1,68 @@
 import os
+from urllib.parse import quote_plus, urlencode
 import dotenv
 from flask import Flask, redirect, render_template, request, url_for
-from flask_discord import DiscordOAuth2Session
+from authlib.integrations.flask_client import OAuth
+from dotenv import find_dotenv, load_dotenv
+from flask import Flask, redirect, render_template, session, url_for
+import tempfile
 
+from scripts.converter import convertLogs
 
 dotenv.load_dotenv()
 
 app = Flask(__name__)
-app.secret_key =os.getenv('FLASK_SECRET_KEY')
+app.secret_key =os.getenv('APP_SECRET_KEY')
 
-# Discord auth config
-app.config["DISCORD_CLIENT_ID"] = os.getenv('DISCORD_CLIENT_ID')
-app.config["DISCORD_CLIENT_SECRET"] = os.getenv('DISCORD_CLIENT_SECRET') 
-app.config["DISCORD_REDIRECT_URI"] = os.getenv('DISCORD_REDIRECT_URI')
-discord = DiscordOAuth2Session(app)
+# auth0 oauth
+oauth = OAuth(app)
+
+oauth.register(
+    "auth0",
+    client_id=os.getenv("AUTH0_CLIENT_ID"),
+    client_secret=os.getenv("AUTH0_CLIENT_SECRET"),
+    client_kwargs={
+        "scope": "openid profile email",
+    },
+    server_metadata_url=f'https://{os.getenv("AUTH0_DOMAIN")}/.well-known/openid-configuration'
+)
+
+# loging and callback
+@app.route("/login")
+def login():
+    return oauth.auth0.authorize_redirect(
+        redirect_uri=url_for("callback", _external=True)
+    )
+@app.route("/callback", methods=["GET", "POST"])
+def callback():
+    token = oauth.auth0.authorize_access_token()
+    session["user"] = token
+    return redirect("/dashboard")
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(
+        "https://" + os.getenv("AUTH0_DOMAIN")
+        + "/v2/logout?"
+        + urlencode(
+            {
+                "returnTo": url_for("mainPage", _external=True),
+                "client_id": os.getenv("AUTH0_CLIENT_ID"),
+            },
+            quote_via=quote_plus,
+        )
+    )
 
 @app.route("/")
 def mainPage():
-    return 'hi'
+    if session.get("user"):
+        return redirect('/dashboard')
+    else:
+        return('<a href="/login">Login</a>')
 
 @app.route('/dashboard')
 def dashboardPage():
-    return render_template('dashboard.html')
+    return render_template('dashboard.html', session=session.get("user"))
 
 @app.route('/log')
 def logPage():
@@ -91,6 +132,25 @@ def logPage():
     displayName = prettyMode.get(mode, None)
     categorizedLines = lineOptions.get(mode, {})
     return render_template('log.html', mode=mode, displayName=displayName, lineOptions=categorizedLines, stations=stations)
+
+# comvert page and api
+@app.route('/convert')
+def convertPage():
+    return render_template('convert.html')
+@app.route('/api/convert', methods=['POST'])
+def convertAPI():
+    data = request.form
+    file = request.files.get('file')
+    if file:
+        temp_dir = tempfile.mkdtemp()
+        file_path = os.path.join(temp_dir, data['mode'] + "_" + file.filename)
+        file.save(file_path)
+    else:
+        return "No file uploaded", 400
+
+    convertLogs(file_path, data['mode'], session.get("user")['userinfo']['sub'])
+    
+    return render_template('convert.html', success="Conversion successful!")
 
 if __name__ == "__main__":
     app.run(debug=True, port=5002)

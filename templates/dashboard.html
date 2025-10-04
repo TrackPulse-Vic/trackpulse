@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-    <h1>Welcome Xm9G!</h1>
+    {% include 'navbar.html' %}
+    <h1>Welcome {{ session.userinfo.name }}!</h1>
     <div class="box-div">
         <h2>Log a trip</h2>
         <h3>Victoria</h3>
@@ -30,13 +31,30 @@
         </div>
         <h3>Western Australia</h3>
         <div class="button-list">
-            <a href="/log?mode=watrain">Train</a>
-            <a href="/log?mode=wabus">Bus</a>
+            <a href="/log?mode=watrain"><img src="{{ url_for('static', filename='icons/WA/train.png') }}" alt="Train" class="inline-svg">Train</a>
+            <a href="/log?mode=wabus"><img src="{{ url_for('static', filename='icons/WA/bus.png') }}" alt="Bus" class="inline-svg">Bus</a>
         </div>
         <h3>ACT</h3>
         <div class="button-list">
             <a href="/log?mode=actlightrail"><img src="{{ url_for('static', filename='icons/ACT/Canberra_Metro_icon.svg') }}" alt="Light Rail" class="inline-svg">Light Rail</a>
             <a href="/log?mode=actbus"><img src="{{ url_for('static', filename='icons/ACT/Canberra_Bus_icon.svg') }}" alt="Bus" class="inline-svg">Bus</a>
+        </div>
+        <h2>Coming soon</h2>
+        <h3>Queensland</h3>
+        <div class="button-list">
+            <a style="cursor: not-allowed;">Train</a>
+            <a style="cursor: not-allowed;">Bus</a>
+            <a style="cursor: not-allowed;">Ferry</a>
+            <a style="cursor: not-allowed;">Tram</a>
+        </div>
+        <h3>Tasmania</h3>
+        <div class="button-list">
+            <a style="cursor: not-allowed;">Bus</a>
+            <a style="cursor: not-allowed;">Ferry</a>
+        </div>
+        <h3>Northern Territory</h3>
+        <div class="button-list">
+            <a style="cursor: not-allowed;">Bus</a>
         </div>
     </div>
 </body>
