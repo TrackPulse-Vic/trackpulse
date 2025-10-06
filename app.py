@@ -8,6 +8,7 @@ from flask import Flask, redirect, render_template, session, url_for
 import tempfile
 
 from scripts.converter import convertLogs
+from scripts.reader import getLogs
 
 dotenv.load_dotenv()
 
@@ -132,6 +133,12 @@ def logPage():
     displayName = prettyMode.get(mode, None)
     categorizedLines = lineOptions.get(mode, {})
     return render_template('log.html', mode=mode, displayName=displayName, lineOptions=categorizedLines, stations=stations)
+
+# view log page
+@app.route('/view')
+def viewLogPage():
+    logs = getLogs(user=session.get('user')['userinfo']['sub'])
+    return render_template('viewer.html', logs=logs)
 
 # comvert page and api
 @app.route('/convert')
