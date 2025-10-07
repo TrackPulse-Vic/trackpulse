@@ -1,14 +1,12 @@
 html, body {
-    /* Make the page exactly the viewport size and remove default gaps */
     height: 100%;
     margin: 0;
     padding: 0;
     background-color: black;
-    /* Hide scrollbars so the map fills the page without scrolling */
     overflow: hidden;
 }
 
-/* Make the map cover the entire viewport as a background layer */
+
 .map {
     position: fixed;
     top: 0;
@@ -19,17 +17,13 @@ html, body {
     padding: 0;
     border: none;
     border-radius: 0;
-    overflow: hidden; /* prevent internal scrollbars */
-    z-index: 0; /* keep as background; raise other UI above it with higher z-index */
+    overflow: hidden;
+    z-index: 0;
 }
 
-/* Mobile: if you have a fixed bottom navbar (70px), keep map height adjusted so UI isn't hidden
-     (this keeps the page scrollbar-free while ensuring bottom nav remains visible). */
+
 @media (max-width: 600px) {
     .map {
         height: calc(100vh - 70px);
     }
 }
-
-/* NOTE: If you have a navbar or controls that should appear above the map, give them
-     position: relative (or fixed) and a higher z-index, e.g. `.navbar { position: relative; z-index: 1; }` */

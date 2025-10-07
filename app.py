@@ -7,6 +7,8 @@ from dotenv import find_dotenv, load_dotenv
 from flask import Flask, redirect, render_template, session, url_for
 import tempfile
 
+import requests
+
 from scripts.converter import convertLogs
 from scripts.map.main import getVehiclePositions
 from scripts.reader import getLogs
@@ -170,6 +172,21 @@ def apiLocations(mode):
     if not request.referrer or not request.referrer.startswith(request.host_url):
         return jsonify({"error": "Access denied"}), 403
     return jsonify(getVehiclePositions(mode))
+ 
+
+@app.route(f'/api/photo/<mode>')
+def apiPhoto(mode):
+    # if not request.referrer or not request.referrer.startswith(request.host_url):
+    #     return jsonify({"error": "Access denied"}), 403
+    number = request.args.get('number')
+    if mode == 'train':
+        if number.startswith('V') or number.startswith('S'):
+            number = number[1:]
+        images = requests.get(f'https://victorianrailphotos.com/api/photos/{number}')
+        data = images.json()
+        imgURL = data['photos'][0]['thumbnail']
+        return redirect(imgURL)
+    return jsonify({"error": "Invalid mode"}), 400
 
 
 if __name__ == "__main__":

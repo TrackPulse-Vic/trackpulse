@@ -6,7 +6,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet GPX plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .leaflet-marker-icon {
+            transition: transform 0.9s linear;
+        }
+    </style>
     
 </head>
 <body>
@@ -19,13 +26,18 @@
         }).addTo(map);
 
         var markerLayer = L.layerGroup().addTo(map);
+    var gpxLayer = L.layerGroup().addTo(map);
+
+        // Keep markers between updates to allow smooth transitions
+        const trackedMarkers = {};
+        let anonCounter = 0;
 
         function updateMap() {
             fetch('/api/locations/{{ mode }}')
             .then(response => response.json())
             .then(data => {
-                // Clear existing
-                markerLayer.clearLayers();
+                // Track which ids seen
+                const seenIds = new Set();
 
                 const modeIconMap = {
                     vline: '/static/icons/transportVic/PICTO_MODE_RegionalTrain.svg',
@@ -46,7 +58,7 @@
                     });
                 }
 
-                function processMessage(msg, modeForIcons) {
+                function genMarkers(msg, modeForIcons) {
                     const messages = Array.isArray(msg) ? msg : [msg];
                     messages.forEach(function(m) {
                         const entities = Array.isArray(m.entity) ? m.entity : (m.entity ? [m.entity] : []);
@@ -62,21 +74,46 @@
 
                             const icon = createIconForMode(modeForIcons || (m.header && m.header.mode) || (trip && trip.routeId));
 
+                            const routeId = trip.routeId || '';
+                            const routeMatch = routeId.match(/vic-\d{2}-([A-Z]{3})(?=:)/);
+                            const lineName = routeMatch ? routeMatch[1] : (routeId || 'Unknown');
+
                             const popupHtml = [
-                                'Fleet Number: ' + (vehicle.id ?? 'N/A'),
-                                'Route: ' + (trip.routeId ?? 'N/A'),
+                                'Fleet Number: ' + (vehicle.id ?? 'Unknown'),
+                                'Line: ' + lineName,
+                                '<img src="/api/photo/{{ mode }}?number=' + (vehicle.id ?? '') + '" alt="Train Photo">',
                             ].join('<br>');
 
-                            L.marker([pos.latitude, pos.longitude], { icon: icon })
-                                .addTo(markerLayer)
-                                .bindPopup(popupHtml);
+                            // get an id for the train marker
+                            let idKey = vehicle.id ?? (trip.tripId || trip.routeId) ?? null;
+                            if (!idKey) {
+                                anonCounter += 1;
+                                idKey = 'anon_' + anonCounter;
+                            }
+
+                            seenIds.add(idKey);
+
+                            const latlng = [pos.latitude, pos.longitude];
+
+                            if (trackedMarkers[idKey]) {
+                                // Update existing marker position (will animate due to CSS transition), icon, and popup
+                                const marker = trackedMarkers[idKey];
+                                marker.setLatLng(latlng);
+                                if (marker.getPopup()) marker.setPopupContent(popupHtml);
+                                else marker.bindPopup(popupHtml);
+                                // update icon if changed
+                                marker.setIcon(icon);
+                            } else {
+                                // Create new marker
+                                const marker = L.marker(latlng, { icon: icon }).addTo(markerLayer).bindPopup(popupHtml);
+                                trackedMarkers[idKey] = marker;
+                            }
                         });
                     });
                 }
 
-                // If data is an array or single message, process it without a mode key.
                 if (Array.isArray(data)) {
-                    processMessage(data, null);
+                    genMarkers(data, null);
                 } else if (data && typeof data === 'object' && !Array.isArray(data)) {
                     // If object looks like a mapping of mode->message (each value has an 'entity'), iterate entries.
                     const entries = Object.entries(data);
@@ -84,13 +121,24 @@
 
                     if (isModeMap) {
                         entries.forEach(([modeKey, msg]) => {
-                            processMessage(msg, modeKey);
+                            genMarkers(msg, modeKey);
                         });
                     } else {
                         // treat as a single feed message
-                        processMessage(data, null);
+                        genMarkers(data, null);
                     }
                 }
+                // remove shit markers that arent there anymroe
+                for (const key in trackedMarkers) {
+                    if (!seenIds.has(key)) {
+                        try {
+                            markerLayer.removeLayer(trackedMarkers[key]);
+                        } catch (e) {
+                        }
+                        delete trackedMarkers[key];
+                    }
+                }
+
                 console.log('Map updated at ' + new Date().toLocaleTimeString());
             })
             .catch(error => console.error('Error updating map:', error));
@@ -98,7 +146,55 @@
 
         updateMap();
 
-        setInterval(updateMap, 20000);
+        setInterval(updateMap, 30000);
+
+        // load gpx files
+        const gpxColorPalette = [
+            '#e6194b', 
+        ];
+
+        const gpxFiles = [
+            'LIL.gpx',
+            'BEL.gpx'
+        ];
+
+        function loadGpxFiles() {
+            gpxLayer.clearLayers();
+
+
+            gpxFiles.forEach((fname, idx) => {
+                const url = '/static/gpx/' + encodeURIComponent(fname);
+                const color = gpxColorPalette[idx % gpxColorPalette.length];
+                try {
+                    const gpx = new L.GPX(url, {
+                        async: true,
+                        polyline_options: {
+                            color: color,
+                            weight: 4,
+                            opacity: 0.8
+                        },
+                        marker_options: {
+                            startIconUrl: null,
+                            endIconUrl: null,
+                            shadowUrl: null
+                        }
+                    }).on('loaded', function(e) {
+                        // Optionally fit bounds to include tracks
+                        try {
+                            map.fitBounds(e.target.getBounds());
+                        } catch (err) {
+                            // ignore if bounds invalid
+                        }
+                    }).addTo(gpxLayer);
+
+                } catch (err) {
+                    console.error('Error loading GPX', fname, err);
+                }
+            });
+        }
+
+        // initial load of manually-listed GPX files
+        loadGpxFiles();
     </script>
 </body>
 </html>
