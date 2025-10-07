@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Train Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 500px; width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>Victorian Train Map</h1>
+    <div id="map"></div>
+    <script>
+        var map = L.map('map').setView([-37.8136, 144.9631], 7);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        function updateMap() {
+            fetch('/api/locations/{{ mode }}')
+            .then(response => response.json())
+            .then(data => {
+                // Clear existing markers.
+                map.eachLayer(function (layer) {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);
+                }
+                });
+
+                // Add new markers
+                data.entity.forEach(function(entity) {
+                var pos = entity.vehicle.position;
+                var trip = entity.vehicle.trip;
+                var vehicle = entity.vehicle.vehicle;
+                L.marker([pos.latitude, pos.longitude])
+                    .addTo(map)
+                    .bindPopup('Vehicle ID: ' + vehicle.id + '<br>Route: ' + trip.routeId + '<br>Lat: ' + pos.latitude + '<br>Lon: ' + pos.longitude + '<br>Bearing: ' + pos.bearing);
+                });
+                console.log('Map updated at ' + new Date().toLocaleTimeString());
+            })
+            .catch(error => console.error('Error updating map:', error));
+        }
+
+        updateMap();
+
+        setInterval(updateMap, 20000);
+    </script>
+</body>
+</html>

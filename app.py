@@ -1,13 +1,14 @@
 import os
 from urllib.parse import quote_plus, urlencode
 import dotenv
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 from authlib.integrations.flask_client import OAuth
 from dotenv import find_dotenv, load_dotenv
 from flask import Flask, redirect, render_template, session, url_for
 import tempfile
 
 from scripts.converter import convertLogs
+from scripts.map.main import getVehiclePositions
 
 dotenv.load_dotenv()
 
@@ -151,6 +152,16 @@ def convertAPI():
     convertLogs(file_path, data['mode'], session.get("user")['userinfo']['sub'])
     
     return render_template('convert.html', success="Conversion successful!")
+
+# TRAIN SEARCH AND MAP PAGE
+@app.route('/map/<mode>')
+def mapPage(mode):
+    return render_template('map.html', mode=mode)
+
+@app.route('/api/locations/<mode>')
+def apiLocations(mode):
+    return jsonify(getVehiclePositions(mode))
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5002)
