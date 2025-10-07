@@ -17,6 +17,5 @@ def getVehiclePositions(mode):
         print(f"HTTP {vlineData.status_code} when fetching GTFS data")
     if metroData.status_code != 200:
         print(f"HTTP {metroData.status_code} when fetching GTFS data")
-    return vlineData.json(), metroData.json()
-
-print(getVehiclePositions('train'))
+        
+    return({'vline': vlineData.json(), 'metro': metroData.json()})

@@ -3,41 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <title>Train Map</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        #map { height: 500px; width: 100%; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
 </head>
 <body>
-    <h1>Victorian Train Map</h1>
-    <div id="map"></div>
+    {% include 'navbar.html' %}
+    <div id="map" class="map"></div>
     <script>
         var map = L.map('map').setView([-37.8136, 144.9631], 7);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
+        var markerLayer = L.layerGroup().addTo(map);
+
         function updateMap() {
             fetch('/api/locations/{{ mode }}')
             .then(response => response.json())
             .then(data => {
-                // Clear existing markers.
-                map.eachLayer(function (layer) {
-                if (layer instanceof L.Marker) {
-                    map.removeLayer(layer);
-                }
-                });
+                // Clear existing
+                markerLayer.clearLayers();
 
-                // Add new markers
-                data.entity.forEach(function(entity) {
-                var pos = entity.vehicle.position;
-                var trip = entity.vehicle.trip;
-                var vehicle = entity.vehicle.vehicle;
-                L.marker([pos.latitude, pos.longitude])
-                    .addTo(map)
-                    .bindPopup('Vehicle ID: ' + vehicle.id + '<br>Route: ' + trip.routeId + '<br>Lat: ' + pos.latitude + '<br>Lon: ' + pos.longitude + '<br>Bearing: ' + pos.bearing);
-                });
+                const modeIconMap = {
+                    vline: '/static/icons/transportVic/PICTO_MODE_RegionalTrain.svg',
+                    metro: '/static/icons/transportVic/PICTO_MODE_Train.svg',
+                    tram: '/static/icons/transportVic/PICTO_MODE_Tram.svg',
+                    bus: '/static/icons/transportVic/PICTO_MODE_Bus.svg',
+                    train: '/static/icons/transportVic/PICTO_MODE_Train.svg',
+                    default: '/static/icons/transportVic/PICTO_MODE_Train.svg'
+                };
+
+                function createIconForMode(mode) {
+                    const key = (mode || '').toLowerCase();
+                    const url = modeIconMap[key] || modeIconMap.default;
+                    return L.icon({
+                        iconUrl: url,
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    });
+                }
+
+                function processMessage(msg, modeForIcons) {
+                    const messages = Array.isArray(msg) ? msg : [msg];
+                    messages.forEach(function(m) {
+                        const entities = Array.isArray(m.entity) ? m.entity : (m.entity ? [m.entity] : []);
+                        entities.forEach(function(entity) {
+                            const vehicleWrapper = entity.vehicle || {};
+                            const pos = vehicleWrapper.position || entity.position;
+                            const trip = vehicleWrapper.trip || {};
+                            const vehicle = vehicleWrapper.vehicle || {};
+
+                            if (!pos || typeof pos.latitude !== 'number' || typeof pos.longitude !== 'number') {
+                                return; // skip invalid
+                            }
+
+                            const icon = createIconForMode(modeForIcons || (m.header && m.header.mode) || (trip && trip.routeId));
+
+                            const popupHtml = [
+                                'Fleet Number: ' + (vehicle.id ?? 'N/A'),
+                                'Route: ' + (trip.routeId ?? 'N/A'),
+                            ].join('<br>');
+
+                            L.marker([pos.latitude, pos.longitude], { icon: icon })
+                                .addTo(markerLayer)
+                                .bindPopup(popupHtml);
+                        });
+                    });
+                }
+
+                // If data is an array or single message, process it without a mode key.
+                if (Array.isArray(data)) {
+                    processMessage(data, null);
+                } else if (data && typeof data === 'object' && !Array.isArray(data)) {
+                    // If object looks like a mapping of mode->message (each value has an 'entity'), iterate entries.
+                    const entries = Object.entries(data);
+                    const isModeMap = entries.length > 0 && entries.every(([k, v]) => v && (v.entity || Array.isArray(v.entity)) );
+
+                    if (isModeMap) {
+                        entries.forEach(([modeKey, msg]) => {
+                            processMessage(msg, modeKey);
+                        });
+                    } else {
+                        // treat as a single feed message
+                        processMessage(data, null);
+                    }
+                }
                 console.log('Map updated at ' + new Date().toLocaleTimeString());
             })
             .catch(error => console.error('Error updating map:', error));
