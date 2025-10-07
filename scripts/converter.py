@@ -9,9 +9,16 @@ def convertLogs(filePath, mode, userid):
     with open(filePath, 'r') as csvfile:
         reader = csv.reader(csvfile)
         next(reader)  # Skip the header row
-         if mode == 'vicbus':
-             
-        
+        if mode == 'vicbus':
+            for row in reader:
+                try:
+                    note = row[8]
+                except IndexError:
+                    note = None
+                        
+                cursor.execute('INSERT INTO logs (number, type, date, route, start, end, notes, mode, userid, operator) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                            (row[0], row[1], row[2], row[3], row[4], row[5], note, mode, userid, row[7]))
+
         for row in reader:
             try:
                 note = row[7]
