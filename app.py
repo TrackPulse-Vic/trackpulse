@@ -62,7 +62,7 @@ def mainPage():
     if session.get("user"):
         return redirect('/dashboard')
     else:
-        return('<a href="/login">Login</a>')
+        return render_template('landing.html')
 
 @app.route('/dashboard')
 def dashboardPage():

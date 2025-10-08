@@ -13,6 +13,25 @@
         .leaflet-marker-icon {
             transition: transform 0.9s linear;
         }
+        .vehicle-icon {
+            position: relative;
+            width: 28px;
+            height: 28px;
+            display: inline-block;
+            transform: translate3d(0,0,0);
+        }
+        .vehicle-icon svg.heading-arrow {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: center center;
+            transition: transform 0.9s linear;
+            opacity: 0.98;
+            pointer-events: none;
+            filter: drop-shadow(0 0 1px rgba(0,0,0,0.6));
+        }
     </style>
     
 </head>
@@ -36,26 +55,51 @@
             fetch('/api/locations/{{ mode }}')
             .then(response => response.json())
             .then(data => {
-                // Track which ids seen
                 const seenIds = new Set();
 
-                const modeIconMap = {
-                    vline: '/static/icons/transportVic/PICTO_MODE_RegionalTrain.svg',
-                    metro: '/static/icons/transportVic/PICTO_MODE_Train.svg',
-                    tram: '/static/icons/transportVic/PICTO_MODE_Tram.svg',
-                    bus: '/static/icons/transportVic/PICTO_MODE_Bus.svg',
-                    train: '/static/icons/transportVic/PICTO_MODE_Train.svg',
-                    default: '/static/icons/transportVic/PICTO_MODE_Train.svg'
+                const modeColorMap = {
+                    vline: '#831586',
+                    metro: '#0876d0',
+                    tram: '#009646', 
+                    bus: '#f68e2b', 
                 };
 
                 function createIconForMode(mode) {
                     const key = (mode || '').toLowerCase();
-                    const url = modeIconMap[key] || modeIconMap.default;
-                    return L.icon({
-                        iconUrl: url,
-                        iconSize: [20, 20],
-                        iconAnchor: [10, 10]
+                    const color = modeColorMap[key] || modeColorMap.default;
+                    // Use a divIcon that contains only an SVG arrow. The arrow's fill/stroke uses the mode colour.
+                    const html = `
+                        <div class="vehicle-icon">
+                            <svg class="heading-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                                <!-- arrow pointing up (north) by default) - uses currentColor for easy styling -->
+                                <path d="M12 2 L19 21 L12 17 L5 21 Z" fill="${color}" stroke="#222" stroke-width="0.5" />
+                            </svg>
+                        </div>
+                    `;
+                    return L.divIcon({
+                        html: html,
+                        className: '', // avoid extra classes from Leaflet
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
                     });
+                }
+
+                function applyHeadingToMarker(marker, heading) {
+                    try {
+                        if (!marker || !marker._icon) return;
+                        const arrow = marker._icon.querySelector && marker._icon.querySelector('.heading-arrow');
+                        if (!arrow) return;
+                        if (heading === null || heading === undefined || isNaN(Number(heading))) {
+                            arrow.style.display = 'none';
+                        } else {
+                            arrow.style.display = '';
+                            // GTFS heading/bearing is degrees clockwise from north
+                            const deg = Number(heading) || 0;
+                            arrow.style.transform = 'rotate(' + deg + 'deg)';
+                        }
+                    } catch (e) {
+                        // ignore DOM errors
+                    }
                 }
 
                 function genMarkers(msg, modeForIcons) {
@@ -72,6 +116,10 @@
                                 return; // skip invalid
                             }
 
+                            // compute heading/bearing from possible fields in the GTFS payload
+                            const headingVal = (pos && (pos.bearing ?? pos.heading ?? pos.course ?? pos.bearingDegrees)) ||
+                                               (vehicle && (vehicle.bearing ?? vehicle.heading ?? vehicle.course)) || null;
+
                             const icon = createIconForMode(modeForIcons || (m.header && m.header.mode) || (trip && trip.routeId));
 
                             const routeId = trip.routeId || '';
@@ -81,7 +129,7 @@
                             const popupHtml = [
                                 'Fleet Number: ' + (vehicle.id ?? 'Unknown'),
                                 'Line: ' + lineName,
-                                '<img src="/api/photo/{{ mode }}?number=' + (vehicle.id ?? '') + '" alt="Train Photo">',
+                                '<div style="max-width:200px; max-height:150px; overflow:hidden;"><img src="/api/photo/{{ mode }}?number=' + (vehicle.id ?? '') + '" alt="Train Photo" style="width:100%; height:auto;"></div>',
                             ].join('<br>');
 
                             // get an id for the train marker
@@ -103,9 +151,16 @@
                                 else marker.bindPopup(popupHtml);
                                 // update icon if changed
                                 marker.setIcon(icon);
+                                // Leaflet may recreate the icon DOM when setIcon is called.
+                                // Reapply heading after a short delay to ensure the DOM exists.
+                                applyHeadingToMarker(marker, headingVal);
+                                setTimeout(() => applyHeadingToMarker(marker, headingVal), 50);
                             } else {
                                 // Create new marker
                                 const marker = L.marker(latlng, { icon: icon }).addTo(markerLayer).bindPopup(popupHtml);
+                                // set initial heading on creation and reapply shortly after DOM attach
+                                applyHeadingToMarker(marker, headingVal);
+                                setTimeout(() => applyHeadingToMarker(marker, headingVal), 50);
                                 trackedMarkers[idKey] = marker;
                             }
                         });
@@ -150,7 +205,7 @@
 
         // load gpx files
         const gpxColorPalette = [
-            '#00518b', '#00518b', '#00518b', '#00518b', '#00a8e4', '#00a8e4', '#009646', '#009646', '#f07fb3'
+            '#00518b', '#00518b', '#00518b', '#00518b', '#00a8e4', '#00a8e4', '#009646', '#009646', '#f07fb3', '#009646', '#009646', '#009646',
         ];
 
         const gpxFiles = [
@@ -163,6 +218,10 @@
             'STY.gpx',
             'FKN.gpx',
             'SHM.gpx',
+            'WIL.gpx',
+            'WER.gpx',
+            'ALT.gpx',
+
         ];
 
         function loadGpxFiles() {
