@@ -169,7 +169,7 @@ def mapPage(mode):
 
 @app.route('/api/locations/<mode>')
 def apiLocations(mode):
-    if not request.referrer or not request.referrer.startswith(request.host_url) or 'xm9g.net' in request.referrer:
+    if not request.referrer or not request.referrer.startswith(request.host_url) or not 'xm9g.net' in request.referrer:
         return jsonify({"error": "Access denied"}), 403
     return jsonify(getVehiclePositions(mode))
  
