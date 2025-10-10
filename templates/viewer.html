@@ -1,6 +1,6 @@
 {% for log in logs %}
     <div class="log-entry">
-        <p><strong>Date:</strong> {{ log.date }} | <strong>Line:</strong> {{ log.line }} | <strong>Number:</strong> {{ log.number }} | <strong>Type:</strong> {{ log.type }}</p>
+        <p><strong>Date:</strong> {{ log[7] }} | <strong>Line:</strong> {{ log.line }} | <strong>Number:</strong> {{ log.number }} | <strong>Type:</strong> {{ log.type }}</p>
         <p><strong>Start:</strong> {{ log.start }} | <strong>End:</strong> {{ log.end }}</p>
         {% if log.notes %}
             <p><strong>Notes:</strong> {{ log.notes }}</p>
