@@ -1,12 +1,24 @@
-{% for log in logs %}
-    <div class="log-entry">
-        <p><strong>Date:</strong> {{ log[7] }} | <strong>Line:</strong> {{ log.line }} | <strong>Number:</strong> {{ log.number }} | <strong>Type:</strong> {{ log.type }}</p>
-        <p><strong>Start:</strong> {{ log.start }} | <strong>End:</strong> {{ log.end }}</p>
-        {% if log.notes %}
-            <p><strong>Notes:</strong> {{ log.notes }}</p>
-        {% endif %}
-        <hr>
-    </div>
-{% else %}
-    <p>No logs available.</p>
-{% endfor %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <title>View Logs - TrackPulse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/viewer.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+
+    <body>
+        {% include 'navbar.html' %}
+        <h1>View Logs</h1>
+        {% for log in logs %}
+        <div class="log-entry" style="--accent-color: {{ lineColors.get(log[7], '#929598') }};">
+            <p>{{ log[3] }}</p>
+            <p>{{ log[8] }} to {{ log[9] }}</p>
+            <p>Line: {{ log[7] }}</p>
+            <p>Vehicle: {{ log[6] }} {{ log[5] }}</p>
+        </div>
+        {% else %}
+            <p>No logs available.</p>
+        {% endfor %}
+    </body>
+</html>

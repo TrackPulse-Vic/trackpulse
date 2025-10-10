@@ -66,6 +66,8 @@ def mainPage():
 
 @app.route('/dashboard')
 def dashboardPage():
+    if not session.get("user"):
+        return redirect('/login')
     return render_template('dashboard.html', session=session.get("user"))
 
 @app.route('/log')
@@ -140,8 +142,27 @@ def logPage():
 # view log page
 @app.route('/view')
 def viewLogPage():
+    lineColors = {
+        'Lilydale': '#00518b',
+        'Belgrave': '#00518b',
+        'Alamein': '#00518b',
+        'Glen Waverley': '#00518b',
+        'Pakenham': '#00a8e4',
+        'Cranbourne': '#00a8e4',
+        'Frankston': '#009646',
+        'Stony Point': '#009646',
+        'Sandringham': '#f07fb3',
+        'Werribee': '#009646',
+        'Williamstown': '#009646',
+        'Sunbury': '#fcb919',
+        'Upfield': '#fcb919',
+        'Craigieburn': '#fcb919',
+        'Hurstbridge': '#d0222f',
+        'Mernda': '#d0222f',
+        'Flemington Racecourse': '#929598',
+    }
     logs = getLogs(user=session.get('user')['userinfo']['sub'])
-    return render_template('viewer.html', logs=logs)
+    return render_template('viewer.html', logs=logs, lineColors=lineColors)
 
 # comvert page and api
 @app.route('/convert')

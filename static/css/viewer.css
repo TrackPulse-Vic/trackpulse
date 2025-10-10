@@ -1,0 +1,29 @@
+.log-entry {
+    --accent-color: #929598; 
+    position: relative;
+    border: 1px solid gray;
+    padding: 18px 10px 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    background-color: #1e1e1e;
+    width: 40%;
+    overflow: hidden;
+}
+
+@media (max-width: 600px) {
+    .log-entry {
+        width: 90vw;
+    }
+}
+
+.log-entry::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 12px;
+    width: 100%;
+    background: var(--accent-color);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
