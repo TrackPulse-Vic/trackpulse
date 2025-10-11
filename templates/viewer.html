@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-    <title>View Logs - TrackPulse</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/viewer.css') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>View Logs - TrackPulse</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/viewer.css') }}">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
 
     <body>
@@ -16,9 +16,63 @@
             <p>{{ log[8] }} to {{ log[9] }}</p>
             <p>Line: {{ log[7] }}</p>
             <p>Vehicle: {{ log[6] }} {{ log[5] }}</p>
+            <img class="train-image" data-vehicle="{{ log[5] }}" src="" alt="loading photo...">
         </div>
         {% else %}
             <p>No logs available.</p>
         {% endfor %}
+
+        <script>
+        async function fetchAndSetImage(imgElement) {
+            const vehicle = imgElement.getAttribute('data-vehicle');
+            if (!vehicle) return;
+
+            try {
+                const response = await fetch(`http://victorianrailphotos.com/api/photos/${vehicle}?set=true`);
+                const data = await response.json();
+
+                for (const carriage of (data.carriages || [])) {
+                    if (carriage.photos && carriage.photos.length > 0) {
+                        const firstImage = carriage.photos[0];
+                        imgElement.src = firstImage.thumbnail;
+                        imgElement.alt = `carriage ${carriage.carriage}`;
+                        return;
+                    }
+                }
+
+                imgElement.alt = `No image available for ${vehicle}`;
+            } catch (error) {
+                console.error(`Error fetching images for vehicle ${vehicle}:`, error);
+                imgElement.alt = `No image available for ${vehicle}`;
+            }
+        }
+
+        function initLazyLoad() {
+            const imageElements = document.querySelectorAll('.train-image');
+
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver((entries, obs) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            fetchAndSetImage(img);
+                            obs.unobserve(img);
+                        }
+                    }
+                }, {
+                    root: null,
+                    rootMargin: '200px',
+                    threshold: 0.01
+                });
+
+                imageElements.forEach(img => observer.observe(img));
+            } else {
+                // load all images if IntersectionObserver not supported
+                imageElements.forEach(img => fetchAndSetImage(img));
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initLazyLoad);
+        </script>
     </body>
 </html>

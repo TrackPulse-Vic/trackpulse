@@ -142,6 +142,9 @@ def logPage():
 # view log page
 @app.route('/view')
 def viewLogPage():
+    if not session.get("user"):
+        return redirect('/login')
+    
     lineColors = {
         'Lilydale': '#00518b',
         'Belgrave': '#00518b',

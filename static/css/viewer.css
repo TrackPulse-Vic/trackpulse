@@ -2,17 +2,34 @@
     --accent-color: #929598; 
     position: relative;
     border: 1px solid gray;
-    padding: 18px 10px 10px;
+    padding: 18px 100px 10px 10px;
     margin-bottom: 10px;
     border-radius: 5px;
     background-color: #1e1e1e;
-    width: 40%;
+    width: 30%;
+    max-width: 420px;
     overflow: hidden;
+}
+
+.train-image {
+    position: absolute;
+    top: 18px;
+    right: 10px;
+    max-width: 120px;
+    width: 120px;
+    height: auto;
+    border-radius: 5px;
+    object-fit: cover;
 }
 
 @media (max-width: 600px) {
     .log-entry {
         width: 90vw;
+        /* padding: 18px 10px 10px; */
+        max-width: none;
+    }
+    .train-image {
+        display: none;
     }
 }
 
