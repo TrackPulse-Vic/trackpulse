@@ -6,7 +6,7 @@
     margin-bottom: 10px;
     border-radius: 5px;
     background-color: #1e1e1e;
-    width: 30%;
+    width: 100vw;
     max-width: 420px;
     overflow: hidden;
 }
@@ -32,7 +32,7 @@ a {
     flex-direction: row;
     align-items: flex-start;
     gap: 16px;
-    width: 90vw;
+    width: 100%;
     border: 1px solid gray;
     padding: 12px;
     margin-top: 10px;
@@ -61,8 +61,7 @@ a {
 
 @media (max-width: 600px) {
     .log-entry {
-        width: 90vw;
-        /* padding: 18px 10px 10px; */
+        width: 100%;
         max-width: none;
         
     }
@@ -71,7 +70,7 @@ a {
     }
     .log-single {
         display: block;
-        width: 90vw;
+        width: 100%;
     }
     .log-single .train-image {
         display: block;
@@ -91,4 +90,9 @@ a {
     background: var(--accent-color);
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
+}
+
+.log-entry,
+.log-single {
+    box-sizing: border-box;
 }

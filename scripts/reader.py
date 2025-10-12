@@ -1,7 +1,7 @@
 import sqlite3
 
 
-def getLogs(user=None, mode=None, line=None, start=None, end=None, type=None, date=None, number=None, id=None):
+def getLogs(user=None, mode=None, line=None, start=None, end=None, type=None, date=None, number=None, id=None, order='DESC'):
     conn = sqlite3.connect('databases/logs.db')
     cursor = conn.cursor()
     query = "SELECT * FROM logs WHERE 1=1"
@@ -33,6 +33,13 @@ def getLogs(user=None, mode=None, line=None, start=None, end=None, type=None, da
     if id:
         query += " AND id=?"
         params.append(id)
+
+    # validate order and append ORDER BY
+    order = (order or 'DESC').upper()
+    if order not in ('ASC', 'DESC'):
+        order = 'DESC'
+    query += f" ORDER BY date {order}"
+
     cursor.execute(query, params)
     logs = cursor.fetchall()
     conn.close()
