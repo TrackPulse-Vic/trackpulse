@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>View Logs - TrackPulse</title>
+        <title>{{ log[0][8] }} to {{ log[0][9] }} - TrackPulse</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/viewer.css') }}">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,22 +11,17 @@
 
     <body>
         {% include 'navbar.html' %}
-        <h1>View Logs</h1>
-        {% for log in logs %}
-            <a href="/log/{{log[0]}}">
-                <div class="log-entry" style="--accent-color: {{ lineColors.get(log[2], {}).get(log[7], '#929598') }};">
-                    <p>{{ log[3] }}</p>
-                    <p>{{ log[8] }} to {{ log[9] }}</p>
-                    <p>Line: {{ log[7] }}</p>
-                    <p>Vehicle: {{ log[6] }} {{ log[5] }}</p>
-                    <img class="train-image" data-vehicle="{{ log[5] }}" src="" alt="loading photo...">
+        {% for thing in log %}
+            <div class="log-single" style="--accent-color: {{ lineColors.get(thing[2], {}).get(thing[7], '#929598') }};">
+                <img class="train-image" data-vehicle="{{ thing[5] }}" src="" alt="loading photo...">
+                <p>{{ thing[8] }} to {{ thing[9] }} | {{ thing[3] }}</p>
+                <p>Line: {{ thing[7] }}</p>
+                <p>Vehicle: {{ thing[6] }}</p>
+                <p>Number: {{ thing[5] }}</p>
+                <p class="note">{{ thing[10] }}</p>
                 </div>
-            </a>
-        {% else %}
-            <p>No logs available.</p>
         {% endfor %}
-
-        <script>
+    <script>
         async function fetchAndSetImage(imgElement) {
             const vehicle = imgElement.getAttribute('data-vehicle');
             if (!vehicle) return;
@@ -38,7 +33,7 @@
                 for (const carriage of (data.carriages || [])) {
                     if (carriage.photos && carriage.photos.length > 0) {
                         const firstImage = carriage.photos[0];
-                        imgElement.src = firstImage.thumbnail;
+                        imgElement.src = firstImage.url;
                         imgElement.alt = `carriage ${carriage.carriage}`;
                         return;
                     }

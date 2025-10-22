@@ -17,7 +17,7 @@ def convertLogs(filePath, mode, userid):
                     note = None
                         
                 cursor.execute('INSERT INTO logs (number, type, date, route, start, end, notes, mode, userid, operator) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                            (row[0], row[1], row[2], row[3], row[4], row[5], note, mode, userid, row[7]))
+                            (row[1], row[2], row[3], row[4], row[5], row[6], note, mode, userid, row[7]))
 
         for row in reader:
             try:

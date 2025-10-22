@@ -31,6 +31,42 @@ oauth.register(
     server_metadata_url=f'https://{os.getenv("AUTH0_DOMAIN")}/.well-known/openid-configuration'
 )
 
+global lineColors 
+lineColors = {
+        'victrain': {
+            'Lilydale': '#00518b',
+            'Belgrave': '#00518b',
+            'Alamein': '#00518b',
+            'Glen Waverley': '#00518b',
+            'Pakenham': '#00a8e4',
+            'Cranbourne': '#00a8e4',
+            'Frankston': '#009646',
+            'Stony Point': '#009646',
+            'Sandringham': '#f07fb3',
+            'Werribee': '#009646',
+            'Williamstown': '#009646',
+            'Sunbury': '#fcb919',
+            'Upfield': '#fcb919',
+            'Craigieburn': '#fcb919',
+            'Hurstbridge': '#d0222f',
+            'Mernda': '#d0222f',
+            'Flemington Racecourse': '#929598',
+            'Albury': '#7d4099',
+            'Bairnsdale': '#7d4099',
+            'Traralgon': '#7d4099',
+            'Warrnambool': '#7d4099',
+            'Geelong': '#7d4099',
+            "Ararat": '#7d4099',
+            "Ballarat": '#7d4099',
+            'Maryborough': '#7d4099',
+            'Swan Hill': '#7d4099',
+            'Bendigo': '#7d4099',
+            'Echuca': '#7d4099',
+            'Seymour': '#7d4099',
+            'Shepparton': '#7d4099',
+        }
+    }
+
 # loging and callback
 @app.route("/login")
 def login():
@@ -66,6 +102,8 @@ def mainPage():
 
 @app.route('/dashboard')
 def dashboardPage():
+    if not session.get("user"):
+        return redirect('/login')
     return render_template('dashboard.html', session=session.get("user"))
 
 @app.route('/log')
@@ -140,8 +178,30 @@ def logPage():
 # view log page
 @app.route('/view')
 def viewLogPage():
-    logs = getLogs(user=session.get('user')['userinfo']['sub'])
-    return render_template('viewer.html', logs=logs)
+    if not session.get("user"):
+        return redirect('/login')
+    
+    line = request.args.get('line', None)
+    mode = request.args.get('mode', None)
+    start= request.args.get('start', None)
+    end = request.args.get('end', None)
+    number = request.args.get('number', None)
+    vehicle = request.args.get('vehicle', None)
+    
+    logs = getLogs(user=session.get('user')['userinfo']['sub'], line=line, mode=mode, start=start, end=end, number=number, type=vehicle)
+    return render_template('viewer.html', logs=logs, lineColors=lineColors)
+
+# single log page
+@app.route('/log/<int:id>')
+def singleLogPage(id):
+    try:
+        log = getLogs(user=session.get('user')['userinfo']['sub'], id=id)
+    except Exception as e:
+        print(f'Error: {e}')
+        return "error loading log", 500
+    if not log or len(log) == 0:
+        return "Log not found or not allowed to be seen!", 404
+    return render_template('singlelog.html', log=log, lineColors=lineColors)
 
 # comvert page and api
 @app.route('/convert')
@@ -169,7 +229,7 @@ def mapPage(mode):
 
 @app.route('/api/locations/<mode>')
 def apiLocations(mode):
-    if not request.referrer or not request.referrer.startswith(request.host_url):
+    if not request.referrer or not (request.referrer.startswith(request.host_url) or 'xm9g.net' in request.referrer):
         return jsonify({"error": "Access denied"}), 403
     return jsonify(getVehiclePositions(mode))
  
