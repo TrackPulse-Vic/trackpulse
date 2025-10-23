@@ -17,13 +17,13 @@ def logTrip(user, mode, date, vehicleNumber, vehicleType, start, end, line, oper
                 route TEXT,
                 start TEXT,
                 end TEXT,
-                note TEXT,
+                notes TEXT,
                 tags TEXT
             )
         ''')
         
         cursor.execute('''
-            INSERT INTO logs (userid, mode, date, operator, number, type, route, start, end, note, tags)
+            INSERT INTO logs (userid, mode, date, operator, number, type, route, start, end, notes, tags)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (user, mode, date, operator, vehicleNumber, vehicleType, line, start, end, note, tags))
         conn.commit()

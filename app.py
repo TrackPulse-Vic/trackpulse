@@ -11,6 +11,7 @@ import tempfile
 import requests
 
 from scripts.converter import convertLogs
+from scripts.log import logTrip
 from scripts.map.main import getVehiclePositions
 from scripts.reader import getLogs
 from scripts.trainset import setNumber
@@ -113,6 +114,7 @@ def logPage():
     if not session.get("user"):
         return redirect('/login')
     mode = request.args.get('mode')
+    message = request.args.get('message', None)
     prettyMode = {
         'victrain': 'Victorian Train',
         'victram': 'Melbourne Tram',
@@ -177,7 +179,7 @@ def logPage():
 
     displayName = prettyMode.get(mode, None)
     categorizedLines = lineOptions.get(mode, {})
-    return render_template('log.html', mode=mode, displayName=displayName, lineOptions=categorizedLines, stations=stations)
+    return render_template('log.html', mode=mode, displayName=displayName, lineOptions=categorizedLines, stations=stations, message=message)
 
 # view log page
 @app.route('/view')
@@ -210,15 +212,54 @@ def singleLogPage(id):
 # log add api
 @app.route('/api/addLog', methods=['POST'])
 def addLogAPI():
-    logInfo = request.form
-    if not session.get("user"):
-        return 'user not authenticated', 401
-    
-    if logInfo.get('date') == '':
-        date = datetime.datetime.now().strftime('%Y-%m-%d')
-    number, type = setNumber(logInfo.get('number'))    
-    
-    return(jsonify(logInfo, date, number, type, session.get("user")['userinfo']['sub']))
+    try:
+        logInfo = request.form
+        if not session.get("user"):
+            return 'user not authenticated', 401
+        
+        if logInfo.get('date') == '':
+            date = datetime.datetime.now().strftime('%Y-%m-%d')
+        else:
+            date = logInfo.get('date')
+        if logInfo.get('type') != "":
+            type = logInfo.get('type')
+            number = logInfo.get('number')
+        else:
+            number, type = setNumber(logInfo.get('number'))
+        logInfo = dict(logInfo)
+        logInfo['date'] = date
+        logInfo['number'] = number
+        logInfo['type'] = type
+        logInfo['user'] = session.get("user")['userinfo']['sub']
+        logInfo['tags'] = None
+        logInfo['operator'] = None
+
+        success = logTrip(
+            user=session.get("user")['userinfo']['sub'],
+            mode=logInfo.get('mode'),
+            date=logInfo.get('date'),
+            vehicleNumber=logInfo.get('number'),
+            vehicleType=logInfo.get('type'),
+            start=logInfo.get('start'),
+            end=logInfo.get('end'),
+            line=logInfo.get('line'),
+            operator=logInfo.get('operator'),
+            note=logInfo.get('notes'),
+            tags=logInfo.get('tags'),
+        )
+        
+        if not success:
+            message = "Error adding trip to Database, please try again."
+            print(f'error adding log: {logInfo}')
+        else:
+            message = "Trip logged!"
+        
+        return jsonify(logInfo), 200
+    except Exception as e:
+        print(f"Error in /api/addLog: {e}")
+        message = "Internal Server Error, please try again later."
+    finally:
+        return redirect('/log?mode=' + logInfo.get('mode')+f'&message={message}')
 
 # convert page and api
 @app.route('/convert')
