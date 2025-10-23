@@ -74,7 +74,7 @@ body {
         text-align: center;
     }
     .box-div {
-        width: 90vw;
+        width: 90vw !important;
     }
     .log-entry input, .log-entry select, .log-entry textarea {
         width: 95%;

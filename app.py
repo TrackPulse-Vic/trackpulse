@@ -98,10 +98,13 @@ def logout():
 
 @app.route("/")
 def mainPage():
+    if request.args.get('src') == 'nav':
+        return render_template('landing.html')
     if session.get("user"):
         return redirect('/dashboard')
-    else:
-        return render_template('landing.html')
+@app.route('/tpv')
+def tpvPage():
+    return render_template('discordbot.html')
 
 @app.route('/dashboard')
 def dashboardPage():
