@@ -14,7 +14,7 @@ from scripts.converter import convertLogs
 from scripts.log import logTrip
 from scripts.map.main import getVehiclePositions
 from scripts.reader import getLogs
-from scripts.trainset import setNumber
+from scripts.trainset import setNumber, setNumberTram
 
 dotenv.load_dotenv()
 
@@ -135,6 +135,8 @@ def logPage():
         'actbus': 'ACT Bus'
     }
     
+    automodes = ['victrain', 'victram']
+    
     lineOptions = {
         'victrain': {
             'Metro': ["Alamein", "Belgrave", "Craigieburn", "Cranbourne", "Flemington Racecourse", "Frankston", "Glen Waverley", "Hurstbridge", "Lilydale", "Mernda", "Pakenham", "Sandringham", "Stony Point", "Sunbury", "Upfield", "Werribee", "Williamstown"],
@@ -182,7 +184,7 @@ def logPage():
 
     displayName = prettyMode.get(mode, None)
     categorizedLines = lineOptions.get(mode, {})
-    return render_template('log.html', mode=mode, displayName=displayName, lineOptions=categorizedLines, stations=stations, message=message)
+    return render_template('log.html', mode=mode, displayName=displayName, lineOptions=categorizedLines, stations=stations, message=message, automodes=automodes)
 
 # view log page
 @app.route('/view')
@@ -224,11 +226,16 @@ def addLogAPI():
             date = datetime.datetime.now().strftime('%Y-%m-%d')
         else:
             date = logInfo.get('date')
+            
         if logInfo.get('type') != "":
             type = logInfo.get('type')
             number = logInfo.get('number')
         else:
-            number, type = setNumber(logInfo.get('number'))
+            if logInfo.get('mode') == 'victrain':
+                number, type = setNumber(logInfo.get('number'))
+            elif logInfo.get('mode') == 'victram':
+                number, type = setNumberTram(logInfo.get('number'))
+                
         logInfo = dict(logInfo)
         logInfo['date'] = date
         logInfo['number'] = number

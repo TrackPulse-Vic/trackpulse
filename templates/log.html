@@ -40,6 +40,11 @@
 
                 <label for="Number">Number:</label>
                 <input type="text" id="number" name="number" required><br><br>
+
+                {% if mode not in automodes %}
+                <label for="type">Type:</label>
+                <input id="type" name="type" list="types" placeholder="Unknown"><br><br>
+                {% endif %}
                 
                 <label for="start">Start:</label>
                 <input type="text" id="start" name="start" list="stations" required><br><br>
@@ -60,6 +65,7 @@
                     <label for="date">Date:</label>
                     <input type="date" id="date" name="date" ><br><br>
 
+                    {% if mode in automodes %}
                     <label for="type">Type:</label>
                     <input id="type" name="type" list="types"><br><br>
                     <datalist id="types">
@@ -81,6 +87,7 @@
                         <option value="Walker railmotor">
                         <option value="Y Class">
                     </datalist>
+                    {% endif %}
                 </div>
                 
                 <input type="submit" value="Log Trip">

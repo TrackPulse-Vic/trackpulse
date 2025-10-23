@@ -12,14 +12,41 @@
 }
 
 .train-image {
-    position: absolute;
-    top: 18px;
-    right: 10px;
-    max-width: 120px;
-    width: 120px;
+    /* fill its container; container handles absolute positioning */
+    position: relative;
+    display: block;
+    width: 100%;
     height: auto;
     border-radius: 5px;
     object-fit: cover;
+}
+
+.train-image-container {
+    position: absolute;
+    top: 18px;
+    right: 10px;
+    width: 120px;
+    max-width: 120px;
+    overflow: hidden; 
+    border-radius: 5px;
+}
+
+.photo-credit {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    backdrop-filter: blur(2px);
+    display: none; /* shown only when the image load */
+    max-width: calc(100% - 8px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    z-index: 2;
 }
 
 a {
@@ -45,12 +72,30 @@ a {
     position: static;
     order: 2;
     display: block;
-    width: 40%;
-    max-width: 480px;
+    width: 60%;
+    max-width: none;
     height: auto;
     border-radius: 5px;
     object-fit: cover;
     margin: 0;
+}
+
+.log-single .train-image-container {
+    position: static;
+    width: 60%;
+    overflow: visible;
+    border-radius: 5px;
+}
+
+.log-single .photo-credit {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    background: rgba(0,0,0,0.6);
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    white-space: normal;
 }
 
 .log-single p {
@@ -65,9 +110,10 @@ a {
         max-width: none;
         
     }
-    .log-entry .train-image {
-        display: none;
+    .log-entry p {
+        padding-right: 50px;
     }
+    
     .log-single {
         display: block;
         width: 100%;

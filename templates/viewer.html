@@ -19,7 +19,10 @@
                     <p>{{ log[8] }} to {{ log[9] }}</p>
                     <p>Line: {{ log[7] }}</p>
                     <p>Vehicle: {{ log[6] }} {{ log[5] }}</p>
-                    <img class="train-image" data-vehicle="{{ log[5] }}" src="" alt="loading photo...">
+                    <div class="train-image-container">
+                        <img class="train-image" data-vehicle="{{ log[5] }}" src="" alt="loading photo...">
+                        <div class="photo-credit" aria-hidden="true"></div>
+                    </div>
                 </div>
             </a>
         {% else %}
@@ -31,6 +34,9 @@
             const vehicle = imgElement.getAttribute('data-vehicle');
             if (!vehicle) return;
 
+            const container = imgElement.closest('.train-image-container');
+            const creditEl = container ? container.querySelector('.photo-credit') : null;
+
             try {
                 const response = await fetch(`http://victorianrailphotos.com/api/photos/${vehicle}?set=true`);
                 const data = await response.json();
@@ -39,15 +45,30 @@
                     if (carriage.photos && carriage.photos.length > 0) {
                         const firstImage = carriage.photos[0];
                         imgElement.src = firstImage.thumbnail;
+                        const photographer = firstImage.photographer;
+                        imgElement.title = photographer ? `Photo by ${photographer}` : '';
                         imgElement.alt = `carriage ${carriage.carriage}`;
+
+                        if (creditEl) {
+                            if (photographer) {
+                                creditEl.textContent = `© ${photographer}`;
+                                creditEl.style.display = 'block';
+                            } else {
+                                creditEl.style.display = 'none';
+                            }
+                        }
+
                         return;
                     }
                 }
 
-                imgElement.style = "display: none;";
+                // no photos found
+                if (container) container.style.display = 'none';
+                else imgElement.style.display = 'none';
             } catch (error) {
                 console.error(`Error fetching images for vehicle ${vehicle}:`, error);
-                imgElement.style = "display: none;";
+                if (container) container.style.display = 'none';
+                else imgElement.style.display = 'none';
             }
         }
 

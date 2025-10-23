@@ -13,7 +13,7 @@
         {% include 'navbar.html' %}
         {% for thing in log %}
             <div class="log-single" style="--accent-color: {{ lineColors.get(thing[2], {}).get(thing[7], '#929598') }};">
-                <img class="train-image" data-vehicle="{{ thing[5] }}" src="" alt="loading photo...">
+                <!-- <img class="train-image" data-vehicle="{{ thing[5] }}" src="" alt="loading photo..."> -->
                 <p>{{ thing[8] }} to {{ thing[9] }} | {{ thing[3] }}</p>
                 <p>Line: {{ thing[7] }}</p>
                 <p>Vehicle: {{ thing[6] }}</p>
