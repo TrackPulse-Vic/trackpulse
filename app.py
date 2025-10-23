@@ -1,3 +1,4 @@
+import datetime
 import os
 from urllib.parse import quote_plus, urlencode
 import dotenv
@@ -205,7 +206,17 @@ def singleLogPage(id):
         return "Log not found or not allowed to be seen!", 404
     return render_template('singlelog.html', log=log, lineColors=lineColors)
 
-# comvert page and api
+# log add api
+@app.route('/api/addLog', methods=['POST'])
+def addLogAPI():
+    logInfo = request.form
+    if not session.get("user"):
+        return 'user not authenticated', 401
+    if logInfo.get('date') == '':
+        date = datetime.datetime.now().strftime('%Y-%m-%d')
+    return(jsonify(logInfo, date))
+
+# convert page and api
 @app.route('/convert')
 def convertPage():
     if not session.get("user"):

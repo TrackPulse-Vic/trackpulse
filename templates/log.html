@@ -18,7 +18,7 @@
     </div>
     <div class="box-div">
         <div class="log-entry">
-            <form action="/submit_log" method="post">
+            <form action="/api/addLog" method="post">
                 <label for="Line">Line:</label>
                 {% if lineOptions|length > 0 %}
                     <select id="line" name="line" required>
