@@ -13,6 +13,7 @@ import requests
 from scripts.converter import convertLogs
 from scripts.map.main import getVehiclePositions
 from scripts.reader import getLogs
+from scripts.trainset import setNumber
 
 dotenv.load_dotenv()
 
@@ -212,9 +213,12 @@ def addLogAPI():
     logInfo = request.form
     if not session.get("user"):
         return 'user not authenticated', 401
+    
     if logInfo.get('date') == '':
         date = datetime.datetime.now().strftime('%Y-%m-%d')
-    return(jsonify(logInfo, date))
+    number, type = setNumber(logInfo.get('number'))    
+    
+    return(jsonify(logInfo, date, number, type, session.get("user")['userinfo']['sub']))
 
 # convert page and api
 @app.route('/convert')

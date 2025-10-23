@@ -22,6 +22,6 @@ def setNumber(input_str):
         temp = set_str[0].split('-')
         if input_str in temp:
             return set_str[0], set_str[6]
-    return None
+    return None, None
 
 print(setNumber('633M'))
