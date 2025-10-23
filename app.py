@@ -108,6 +108,8 @@ def dashboardPage():
 
 @app.route('/log')
 def logPage():
+    if not session.get("user"):
+        return redirect('/login')
     mode = request.args.get('mode')
     prettyMode = {
         'victrain': 'Victorian Train',
@@ -206,9 +208,14 @@ def singleLogPage(id):
 # comvert page and api
 @app.route('/convert')
 def convertPage():
+    if not session.get("user"):
+        return redirect('/login')
     return render_template('convert.html')
+
 @app.route('/api/convert', methods=['POST'])
 def convertAPI():
+    if not session.get("user"):
+        return 'user not authenticated', 401
     data = request.form
     file = request.files.get('file')
     if file:
