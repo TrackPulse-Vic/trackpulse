@@ -2,6 +2,13 @@ h1, p {
     text-align: center;
 }
 
+h1 {
+    font-size: 3em;
+    background: linear-gradient(to right, #65650f, #00c6ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
 .box-div {
     width: max-content;
     text-align: center;
