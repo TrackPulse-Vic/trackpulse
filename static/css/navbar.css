@@ -1,7 +1,7 @@
 .navbar {
   width: 100vw;
   left: 0;
-  backdrop-filter: blur(5px); 
+  backdrop-filter: blur(3px); 
   background-color: rgba(0, 0, 0, 0.589);
   color: #fff;
   font-family: "Noto Sans", sans-serif;

@@ -102,7 +102,7 @@ def mainPage():
         return render_template('landing.html')
     if session.get("user"):
         return redirect('/dashboard')
-    else:
+    else:   
         return render_template('landing.html')
 @app.route('/tpv')
 def tpvPage():
@@ -113,6 +113,12 @@ def dashboardPage():
     if not session.get("user"):
         return redirect('/login')
     return render_template('dashboard.html', session=session.get("user"))
+
+@app.route('/stats')
+def statsPage():
+    if not session.get("user"):
+        return redirect('/login')
+    return render_template('stats.html')
 
 @app.route('/log')
 def logPage():

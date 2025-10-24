@@ -1,11 +1,14 @@
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/navbar.css') }}">
+<script src="https://kit.fontawesome.com/19da31ded3.js" crossorigin="anonymous"></script>
 <nav class="navbar">
   <ul>
     <li><img src='{{url_for("static", filename="icons/logos/android-icon-144x144.png")}}' class="logo", alt="Logo"></li>
-      <li><a href="{{ url_for('mainPage') }}?src=nav">Home</a></li>
-      <li><a href="{{ url_for('dashboardPage') }}">Dashboard</a></li>
-      <li><a href="{{ url_for('viewLogPage') }}">View Logs</a></li>
-      <li><a href="{{ url_for('convertPage') }}">Convert from Discord bot</a></li>
-      <li><a href="{{ url_for('logout') }}">Logout</a></li>
+      <li><a href="{{ url_for('mainPage') }}?src=nav"><i class="fa-solid fa-house"></i>  Home</a></li>
+      <li><a href="{{ url_for('dashboardPage') }}"><i class="fa-solid fa-pager"></i>  Dashboard</a></li>
+      <li><a href="{{ url_for('statsPage') }}"><i class="fa-solid fa-chart-simple"></i> Statistics</a></li>
+      <li><a href="{{ url_for('viewLogPage') }}"><i class="fa-solid fa-table-list"></i> View Logs</a></li>
+      <li><a href="{{ url_for('convertPage') }}"><i class="fa-solid fa-arrows-spin"></i> Convert from Discord bot</a></li>
+      <li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
   </ul>
 </nav>
+ 

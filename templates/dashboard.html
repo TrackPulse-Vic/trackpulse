@@ -28,13 +28,13 @@
     <h1>Welcome {{ session.userinfo.name }}!</h1>
     <div class="box-div">
         <h2>Log a trip</h2>
-        <h3>Victoria</h3>
+        <h3><img src='https://upload.wikimedia.org/wikipedia/commons/0/08/Flag_of_Victoria_%28Australia%29.svg' class="inline-svg">Victoria</h3>
         <div class="button-list">
             <a href="/log?mode=victrain"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Train.svg') }}" alt="Metro Train" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_RegionalTrain.svg') }}" alt="V/Line Train" class="inline-svg">Train</a>
             <a href="/log?mode=victram"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Tram.svg') }}" alt="Tram" class="inline-svg">Tram</a>
             <a href="/log?mode=vicbus"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Bus.svg') }}" alt="Bus" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Coach.svg') }}" alt="Coach" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_SkyBus.svg') }}" alt="SkyBus" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_FlexiRide.svg') }}" alt="FlexiRide" class="inline-svg">Bus</a>
         </div>
-        <h3>New South Wales</h3>
+        <h3><img src='https://upload.wikimedia.org/wikipedia/commons/0/00/Flag_of_New_South_Wales.svg' class="inline-svg">New South Wales</h3>
         <div class="button-list">
             <a href="/log?mode=nswtrain"><img src="{{ url_for('static', filename='icons/tFnsw/Train_Mode_Colour_Background_400x400.png') }}" alt="Train" class="inline-svg"><img src="{{ url_for('static', filename='icons/tFnsw/Metro_Mode_Colour_Background_400x400.png') }}" alt="Metro" class="inline-svg">Train</a>
             <a href="/log?mode=nswferry"><img src="{{ url_for('static', filename='icons/tFnsw/Ferry_Mode_Colour_Background_400x400.png') }}" alt="Ferry" class="inline-svg">Ferry</a>
@@ -75,5 +75,6 @@
             <a style="cursor: not-allowed;">Bus</a>
         </div>
     </div>
+    {% include 'footer.html' %}
 </body>
 </html>
