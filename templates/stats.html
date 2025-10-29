@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <canvas id="freqChart"></canvas>
+
+    <script>
+    const labels = {{ labels | tojson }};
+    const values = {{ values | tojson }};
+
+    let data = labels.map((label, i) => ({ label, value: values[i] }));
+    data.sort((a, b) => b.value - a.value);
+    const sortedLabels = data.map(item => item.label);
+    const sortedValues = data.map(item => item.value);
+
+    const colourMap = {
+        "Lilydale": "#00518b",
+        "Belgrave": "#00518b",
+        "Alamein": "#00518b",
+        "Glen Waverley": "#00518b",
+        "Pakenham": "#00a8e4",
+        "Cranbourne": "#00a8e4",
+        "Frankston": "#009646",
+        "Stony Point": "#009646",
+        "Sandringham": "#f07fb3",
+        "Werribee": "#009646",
+        "Williamstown": "#009646",
+        "Sunbury": "#00a8e4",
+        "Upfield": "#fcb919",
+        "Craigieburn": "#fcb919",
+        "Hurstbridge": "#d0222f",
+        "Mernda": "#d0222f",
+        'Flemington Racecourse': '#929598',
+        'Albury': '#7d4099',
+        'Bairnsdale': '#7d4099',
+        'Traralgon': '#7d4099',
+        'Warrnambool': '#7d4099',
+        'Geelong': '#7d4099',
+        "Ararat": '#7d4099',
+        "Ballarat": '#7d4099',
+        'Maryborough': '#7d4099',
+        'Swan Hill': '#7d4099',
+        'Bendigo': '#7d4099',
+        'Echuca': '#7d4099',
+        'Seymour': '#7d4099',
+        'Shepparton': '#7d4099',
+    };
+
+    const backgroundColors = sortedLabels.map((lbl, i) => {
+        return colourMap[lbl] || '#000000';
+    });
+
+    const borderColors = backgroundColors.map(c => c.replace(/0\.\d+/, '1'));
+
+    const ctx = document.getElementById('freqChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: sortedLabels,
+            datasets: [{
+                label: 'Count',
+                data: sortedValues,
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `${ctx.label}: ${ctx.raw}`
+                    }
+                }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+</script>
+</body>
+</html>

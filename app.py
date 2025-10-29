@@ -1,5 +1,6 @@
 import datetime
 import os
+from typing import Counter
 from urllib.parse import quote_plus, urlencode
 import dotenv
 from flask import Flask, jsonify, redirect, render_template, request, url_for
@@ -118,7 +119,28 @@ def dashboardPage():
 def statsPage():
     if not session.get("user"):
         return redirect('/login')
-    return render_template('stats.html')
+    
+    mode = request.args.get('mode', None)
+    stat = request.args.get('stat', None)
+    display = request.args.get('display', None)
+    
+    logs = getLogs(user=session.get('user')['userinfo']['sub'], mode=mode)
+    
+    collumMappings = {
+        'line': 7,
+        'start': 8,
+        'end': 9,
+        'number': 5,
+        'type': 6,
+    }
+    
+    lines = []
+    for log in logs:
+        lines.append(log[collumMappings[stat]])
+        lineFrequency = Counter(lines)
+        labels = list(lineFrequency.keys())
+        values = list(lineFrequency.values())
+    return render_template('stats.html', labels=labels, values=values)
 
 @app.route('/log')
 def logPage():
