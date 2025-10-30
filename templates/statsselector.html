@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Statistics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" sizes="96x96" href="{{ url_for('static', filename='icons/logos/favicon-96x96.png') }}">
+</head>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+</style>
+
+<body>
+    {% include 'navbar.html' %}
+    <h1>View log Statistics</h1>
+    
+    <div class="box-div">
+        <div class="log-entry">
+        <form action="/stats" method="get">
+            <label for="mode">Select mode:</label>
+            <select id="mode" name="mode" required>
+                {% for m in modes %}
+                    <option value="{{ m }}" {% if m == selectedMode %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+            </select><br><br>
+            <input type="hidden" name="truncate" value="10">
+            <label for="stat">Select statistic:</label>
+            <select id="stat" name="stat" required>
+                <option value="line">Top Lines</option>
+                <option value="type">Top Types</option>
+                <option value="station">Top Stations</option>
+            </select><br><br>
+            <input type="submit" value="View Statistics">
+        </form>
+        </div>
+    </div>
+    
+</body>

@@ -120,9 +120,13 @@ def statsPage():
     if not session.get("user"):
         return redirect('/login')
     
+    if not request.args.get('stat'):
+        return render_template('statsselector.html', modes=['victrain', 'victram', 'vicbus', 'nswtrain', 'nswbus', 'nswferry', 'nswlightrail', 'satrain', 'satram', 'watrain', 'wabus', 'actlightrail', 'actbus'], selectedMode=request.args.get('mode', None))
+    
     mode = request.args.get('mode', None)
     stat = request.args.get('stat', None)
     display = request.args.get('display', None)
+    truncate = request.args.get('truncate', None)
     
     logs = getLogs(user=session.get('user')['userinfo']['sub'], mode=mode)
     
@@ -137,10 +141,32 @@ def statsPage():
     lines = []
     for log in logs:
         lines.append(log[collumMappings[stat]])
-        lineFrequency = Counter(lines)
-        labels = list(lineFrequency.keys())
-        values = list(lineFrequency.values())
-    return render_template('stats.html', labels=labels, values=values)
+    lineFrequency = Counter(lines)
+
+    sorted_items = sorted(lineFrequency.items(), key=lambda x: x[1], reverse=True)
+    fullLabels = [item[0] for item in sorted_items]
+    fullValues = [item[1] for item in sorted_items]
+    
+    if truncate and truncate.isdigit():
+        truncate = int(truncate)
+        if truncate > 0:
+            # Sort by frequency descending
+            sorted_items = sorted(lineFrequency.items(), key=lambda x: x[1], reverse=True)
+            top_items = sorted_items[:truncate]
+            other_sum = sum(freq for _, freq in sorted_items[truncate:])
+            truncatedLabels = [item[0] for item in top_items]
+            truncatedValues = [item[1] for item in top_items]
+            # if other_sum > 0:
+            #     truncatedLabels.append('Other')
+            #     truncatedValues.append(other_sum)
+        else:
+            truncatedLabels = fullLabels
+            truncatedValues = fullValues
+    else:
+        truncatedLabels = fullLabels
+        truncatedValues = fullValues
+
+    return render_template('stats.html', full_labels=fullLabels, full_values=fullValues, truncated_labels=truncatedLabels, truncated_values=truncatedValues, stat=stat)
 
 @app.route('/log')
 def logPage():
@@ -350,6 +376,35 @@ def apiPhoto(mode):
         imgURL = data['photos'][0]['thumbnail']
         return redirect(imgURL)
     return jsonify({"error": "Invalid mode"}), 400
+
+# user facing API
+@app.route('/api/<key>/logs')
+def apiUserLogs(key):
+    # simple api key auth
+    api_keys = {
+        'your_api_key_here': 'oauth2|discord|780303451980038165',
+    }
+    if key not in api_keys:
+        return jsonify({"error": "Invalid API key"}), 403
+    user_id = api_keys[key]
+    logs = getLogs(user=user_id)
+    log_list = []
+    for log in logs:
+        log_data = {
+            'id': log[0],
+            'mode': log[2],
+            'date': log[3],
+            'operator': log[4],
+            'number': log[5],
+            'type': log[6],
+            'line': log[7],
+            'start': log[8],
+            'end': log[9],
+            'notes': log[10],
+            'tags': log[11],
+        }
+        log_list.append(log_data)
+    return jsonify(log_list)
 
 
 if __name__ == "__main__":
