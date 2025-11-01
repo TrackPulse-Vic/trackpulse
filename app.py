@@ -121,12 +121,15 @@ def statsPage():
         return redirect('/login')
     
     if not request.args.get('stat'):
-        return render_template('statsselector.html', modes=['victrain', 'victram', 'vicbus', 'nswtrain', 'nswbus', 'nswferry', 'nswlightrail', 'satrain', 'satram', 'watrain', 'wabus', 'actlightrail', 'actbus'], selectedMode=request.args.get('mode', None))
-    
+        return render_template('statsselector.html', modes=['All', 'victrain', 'victram', 'vicbus', 'nswtrain', 'nswbus', 'nswferry', 'nswlightrail', 'satrain', 'satram', 'watrain', 'wabus', 'actlightrail', 'actbus'], selectedMode=request.args.get('mode', None))
+        
     mode = request.args.get('mode', None)
     stat = request.args.get('stat', None)
     display = request.args.get('display', None)
     truncate = request.args.get('truncate', None)
+    
+    if mode == 'All':
+        mode = None
         
     logs = getLogs(user=session.get('user')['userinfo']['sub'], mode=mode)
     
@@ -137,6 +140,7 @@ def statsPage():
         'number': 5,
         'type': 6,
         'date': 3,
+        'operator': 4,
     }
     
     lines = []

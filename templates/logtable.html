@@ -7,6 +7,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta charset="utf-8">
         <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icons/logos/favicon.ico') }}">
+        <style>
+            /* Sort indicators for clickable table headers */
+            .table-container th { cursor: pointer; }
+            .table-container th.asc::after { content: ' ▲'; }
+            .table-container th.desc::after { content: ' ▼'; }
+        </style>
     </head>
 
     <body>
@@ -23,23 +29,82 @@
                 <th>Line</th>
                 <th>Type</th>
                 <th>Number</th>
+                <th>Operator</th>
                 <th>Note</th>
             </tr>
             </thead>
             <tbody>
             {% for log in logs %}
             <tr>
-                <td><a href="/log/{{log[0]}}">{{ log[3] }}</a></td>
-                <td><a href="/log/{{log[0]}}">{{ log[8] }}</a></td>
-                <td><a href="/log/{{log[0]}}">{{ log[9] }}</a></td>
-                <td><a href="/log/{{log[0]}}">{{ log[7] }}</a></td>
-                <td><a href="/log/{{log[0]}}">{{ log[6] }}</a></td>
-                <td><a href="/log/{{log[0]}}">{{ log[5] }}</a></td>
-                <td><a href="/log/{{log[0]}}">{{ log[10] }}</a></td>
+                <td data-sort="{{ log[3] }}"><a href="/log/{{log[0]}}">{{ log[3] }}</a></td>
+                <td data-sort="{{ log[8] }}"><a href="/log/{{log[0]}}">{{ log[8] }}</a></td>
+                <td data-sort="{{ log[9] }}"><a href="/log/{{log[0]}}">{{ log[9] }}</a></td>
+                <td data-sort="{{ log[7] }}"><a href="/log/{{log[0]}}">{{ log[7] }}</a></td>
+                <td data-sort="{{ log[6] }}"><a href="/log/{{log[0]}}">{{ log[6] }}</a></td>
+                <td data-sort="{{ log[5] }}"><a href="/log/{{log[0]}}">{{ log[5] }}</a></td>
+                <td data-sort="{{ log[4] }}"><a href="/log/{{log[0]}}">{{ log[4] }}</a></td>
+                <td data-sort="{{ log[10] }}"><a href="/log/{{log[0]}}">{{ log[10] }}</a></td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
         </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const table = document.querySelector('.table-container table');
+            if (!table) return;
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+            const ths = Array.from(thead.querySelectorAll('th'));
+
+            const getCellValue = (tr, idx) => {
+                const td = tr.children[idx];
+                if (!td) return '';
+                const attr = td.getAttribute('data-sort');
+                return (attr !== null && attr !== undefined && attr !== '') ? attr.trim() : td.innerText.trim();
+            };
+
+            const parseDate = (v) => {
+                const d = new Date(v);
+                return isNaN(d) ? NaN : d.getTime();
+            };
+
+            const comparer = (idx, asc) => (a, b) => {
+                const v1 = getCellValue(a, idx);
+                const v2 = getCellValue(b, idx);
+                const n1 = parseFloat(v1.replace(/,/g, ''));
+                const n2 = parseFloat(v2.replace(/,/g, ''));
+                if (!isNaN(n1) && !isNaN(n2)) return (n1 - n2) * (asc ? 1 : -1);
+                const t1 = parseDate(v1);
+                const t2 = parseDate(v2);
+                if (!isNaN(t1) && !isNaN(t2)) return (t1 - t2) * (asc ? 1 : -1);
+                // fallback to localeCompare
+                return v1.localeCompare(v2, undefined, {numeric: true}) * (asc ? 1 : -1);
+            };
+
+            ths.forEach((th, idx) => {
+                th.addEventListener('click', function () {
+                    const currentlyAsc = th.classList.contains('asc');
+                    // clear others
+                    ths.forEach(t => t.classList.remove('asc', 'desc'));
+                    th.classList.toggle('asc', !currentlyAsc);
+                    th.classList.toggle('desc', currentlyAsc);
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    rows.sort(comparer(idx, !currentlyAsc));
+                    rows.forEach(r => tbody.appendChild(r));
+                });
+            });
+
+            // Default sort by Date (column 0) descending (most recent first)
+            if (ths.length > 0) {
+                const defaultIdx = 0;
+                ths.forEach(t => t.classList.remove('asc', 'desc'));
+                ths[defaultIdx].classList.add('desc');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                rows.sort(comparer(defaultIdx, false));
+                rows.forEach(r => tbody.appendChild(r));
+            }
+        });
+        </script>
     </body>
 </html>

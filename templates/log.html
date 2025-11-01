@@ -45,6 +45,9 @@
                 {% if mode not in automodes %}
                 <label for="type">Type:</label>
                 <input id="type" name="type" list="types" placeholder="Unknown"><br><br>
+                
+                <label for="operator">Operator:</label>
+                <input type="text" id="operator" name="operator"><br><br>
                 {% endif %}
                 
                 <label for="start">Start:</label>
@@ -88,6 +91,9 @@
                         <option value="Walker railmotor">
                         <option value="Y Class">
                     </datalist>
+
+                    <label for="operator">Operator:</label>
+                    <input type="text" id="operator" name="operator"><br><br>
                     {% endif %}
                 </div>
                 

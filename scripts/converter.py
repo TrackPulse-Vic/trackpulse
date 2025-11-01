@@ -20,12 +20,19 @@ def convertLogs(filePath, mode, userid):
                             (row[1], row[2], row[3], row[4], row[5], row[6], note, mode, userid, row[7]))
 
         for row in reader:
+            if mode == 'victrain':
+                if row[2] in ['VLocity', 'N Class', 'Sprinter']:
+                    operator = 'V/Line'
+                elif row[2] in ["X'Trapolis 100", 'Siemens Nexas', 'EDI Comeng', 'Alstom Comeng', "X'Trapolis 2.0", 'HCMT']:
+                    operator = 'Metro Trains Melbourne'
+                else: 
+                    operator = None
             try:
                 note = row[7]
             except IndexError:
                 note = None
-            cursor.execute('INSERT INTO logs (number, type, date, route, start, end, notes, mode, userid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                        (row[1], row[2], row[3], row[4], row[5], row[6], note, mode, userid))
+            cursor.execute('INSERT INTO logs (number, type, date, route, start, end, notes, mode, userid, operator) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                        (row[1], row[2], row[3], row[4], row[5], row[6], note, mode, userid, operator))
 
 
     conn.commit()
