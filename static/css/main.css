@@ -74,6 +74,14 @@ th, td {
     border: 1px solid #555; padding: 8px; text-align: left; word-wrap: break-word;
 }
 
+.button {
+    background-color: #555;
+    width: max-content;
+    padding: 7px;
+    margin-bottom: 10px;    
+    
+}
+
 /* Mobile Style */
 @media (max-width: 600px) {
     h1 {

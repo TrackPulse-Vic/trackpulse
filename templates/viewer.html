@@ -12,6 +12,7 @@
     <body>
         {% include 'navbar.html' %}
         <h1>View Logs</h1>
+        <div class="button-list" style="padding-bottom: 10px;"><a href='/view?table=true'>View as table</a></div>
         {% for log in logs %}
             <a href="/log/{{log[0]}}">
                 <div class="log-entry" style="--accent-color: {{ lineColors.get(log[2], {}).get(log[7], '#929598') }};">

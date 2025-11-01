@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>View Logs - TrackPulse</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/viewer.css') }}">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8">
+        <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icons/logos/favicon.ico') }}">
+    </head>
+
+    <body>
+        {% include 'navbar.html' %}
+        <h1>View Logs</h1>
+        <div class="button-list" style="padding-bottom: 10px;"><a href='/view?table=false'>View as list</a></div>
+        <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Line</th>
+                <th>Type</th>
+                <th>Number</th>
+                <th>Note</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for log in logs %}
+            <tr>
+                <td><a href="/log/{{log[0]}}">{{ log[3] }}</a></td>
+                <td><a href="/log/{{log[0]}}">{{ log[8] }}</a></td>
+                <td><a href="/log/{{log[0]}}">{{ log[9] }}</a></td>
+                <td><a href="/log/{{log[0]}}">{{ log[7] }}</a></td>
+                <td><a href="/log/{{log[0]}}">{{ log[6] }}</a></td>
+                <td><a href="/log/{{log[0]}}">{{ log[5] }}</a></td>
+                <td><a href="/log/{{log[0]}}">{{ log[10] }}</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </body>
+</html>

@@ -127,7 +127,7 @@ def statsPage():
     stat = request.args.get('stat', None)
     display = request.args.get('display', None)
     truncate = request.args.get('truncate', None)
-    
+        
     logs = getLogs(user=session.get('user')['userinfo']['sub'], mode=mode)
     
     collumMappings = {
@@ -136,11 +136,16 @@ def statsPage():
         'end': 9,
         'number': 5,
         'type': 6,
+        'date': 3,
     }
     
     lines = []
     for log in logs:
-        lines.append(log[collumMappings[stat]])
+        if stat =='station':
+            lines.append(log[collumMappings['start']])
+            lines.append(log[collumMappings['end']])
+        else:
+            lines.append(log[collumMappings[stat]])
     lineFrequency = Counter(lines)
 
     sorted_items = sorted(lineFrequency.items(), key=lambda x: x[1], reverse=True)
@@ -256,7 +261,11 @@ def viewLogPage():
     vehicle = request.args.get('vehicle', None)
     
     logs = getLogs(user=session.get('user')['userinfo']['sub'], line=line, mode=mode, start=start, end=end, number=number, type=vehicle)
-    return render_template('viewer.html', logs=logs, lineColors=lineColors)
+    
+    if request.args.get('table') == 'true':
+        return render_template('logtable.html', logs=logs)
+    else:
+        return render_template('viewer.html', logs=logs, lineColors=lineColors)
 
 # single log page
 @app.route('/log/<int:id>')

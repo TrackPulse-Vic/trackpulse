@@ -124,6 +124,11 @@ a {
         max-width: none;
         margin: 0 0 12px 0;
     }
+
+}
+
+.table-container {
+    overflow-x: auto;
 }
 
 .log-entry::before {

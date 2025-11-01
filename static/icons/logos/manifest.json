@@ -57,5 +57,9 @@
       "url": "https://tpv.xm9g.net/log?mode=victrain",
       "description": "Log Victorian Train"
     }
+  ],
+  "categories": [
+    "travel",
+    "utilities"
   ]
 }
