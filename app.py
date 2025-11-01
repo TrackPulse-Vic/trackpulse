@@ -12,7 +12,7 @@ import tempfile
 import requests
 
 from scripts.converter import convertLogs
-from scripts.log import logTrip
+from scripts.log import getOperator, logTrip
 from scripts.map.main import getVehiclePositions
 from scripts.reader import getLogs
 from scripts.trainset import setNumber, setNumberTram
@@ -311,7 +311,7 @@ def addLogAPI():
         logInfo['type'] = type
         logInfo['user'] = session.get("user")['userinfo']['sub']
         logInfo['tags'] = None
-        logInfo['operator'] = None
+        logInfo['operator'] = getOperator(logInfo.get('mode'), logInfo.get('type'))
 
         success = logTrip(
             user=session.get("user")['userinfo']['sub'],

@@ -131,6 +131,10 @@ a {
     overflow-x: auto;
 }
 
+table tr:nth-child(even) {
+    background-color: #2a2a2a;
+}
+
 .log-entry::before {
     content: "";
     position: absolute;

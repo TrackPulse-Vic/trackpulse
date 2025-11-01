@@ -52,4 +52,36 @@ def setNumberTram(input_str):
             return number, set_type
     return None, None
 
-print(setNumberTram('6050'))
+def sydneyTrainType(setNumber):
+    # figure out the train type
+        if setNumber.startswith('AM'):
+            trainType = 'Alstom Metropolis'
+        elif setNumber.startswith('A'):
+            trainType = 'Waratah A set'
+        elif setNumber.startswith('B'):
+            trainType = 'Waratah B set'
+        elif setNumber.startswith('H'):
+            trainType = 'OSCar'
+        elif setNumber.startswith('J'):
+            trainType = 'Hunter'
+        elif setNumber.startswith('K'):
+            trainType = 'K Set'
+        elif setNumber.startswith('M'):
+            trainType = 'Millenium'
+        elif setNumber.startswith('N'):
+            trainType = 'Endeavour'
+        elif setNumber.startswith('T'):
+            trainType = 'Tangara'
+        elif setNumber.startswith('V'):
+            trainType = 'V Set'
+        elif setNumber.startswith('XP'):
+            trainType = 'XPT'    
+        elif setNumber.startswith('P'):
+            trainType = 'Xplorer'
+        elif int(setNumber) >= 4801 and int(setNumber) <= 4863 or int(setNumber) >= 4865 and int(setNumber) <= 48165 or int(setNumber) >= 48208 and int(setNumber) <= 48209 or int(setNumber)== 48216:
+            trainType = '48 Class'
+        
+        else:
+            trainType = 'Unknown'
+            
+        return trainType
