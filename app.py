@@ -71,6 +71,9 @@ lineColors = {
         }
     }
 
+global MODES
+MODES = ['All', 'victrain', 'victram', 'vicbus', 'nswtrain', 'nswbus', 'nswferry', 'nswlightrail', 'satrain', 'satram', 'watrain', 'wabus', 'actlightrail', 'actbus']
+
 # loging and callback
 @app.route("/login")
 def login():
@@ -121,7 +124,7 @@ def statsPage():
         return redirect('/login')
     
     if not request.args.get('stat'):
-        return render_template('statsselector.html', modes=['All', 'victrain', 'victram', 'vicbus', 'nswtrain', 'nswbus', 'nswferry', 'nswlightrail', 'satrain', 'satram', 'watrain', 'wabus', 'actlightrail', 'actbus'], selectedMode=request.args.get('mode', None))
+        return render_template('statsselector.html', modes=MODES, selectedMode=request.args.get('mode', None))
         
     mode = request.args.get('mode', None)
     stat = request.args.get('stat', None)
@@ -257,8 +260,11 @@ def viewLogPage():
     if not session.get("user"):
         return redirect('/login')
     
+    
     line = request.args.get('line', None)
     mode = request.args.get('mode', None)
+    if mode == 'All':
+        mode = None
     start= request.args.get('start', None)
     end = request.args.get('end', None)
     number = request.args.get('number', None)
@@ -267,9 +273,9 @@ def viewLogPage():
     logs = getLogs(user=session.get('user')['userinfo']['sub'], line=line, mode=mode, start=start, end=end, number=number, type=vehicle)
     
     if request.args.get('table') == 'true':
-        return render_template('logtable.html', logs=logs)
+        return render_template('logtable.html', logs=logs, modes=MODES)
     else:
-        return render_template('viewer.html', logs=logs, lineColors=lineColors)
+        return render_template('viewer.html', logs=logs, lineColors=lineColors, modes=MODES)
 
 # single log page
 @app.route('/log/<int:id>')
@@ -393,6 +399,9 @@ def apiPhoto(mode):
 # user facing API
 @app.route('/api/<key>/logs')
 def apiUserLogs(key):
+    mode = request.args.get('mode', None)
+    if mode == 'All':
+        mode = None
     # simple api key auth
     api_keys = {
         'your_api_key_here': 'oauth2|discord|780303451980038165',
@@ -400,7 +409,7 @@ def apiUserLogs(key):
     if key not in api_keys:
         return jsonify({"error": "Invalid API key"}), 403
     user_id = api_keys[key]
-    logs = getLogs(user=user_id)
+    logs = getLogs(user=user_id, mode=mode)
     log_list = []
     for log in logs:
         log_data = {
@@ -418,6 +427,24 @@ def apiUserLogs(key):
         }
         log_list.append(log_data)
     return jsonify(log_list)
+
+@app.route('/api/<key>/logs.csv')
+def apiUserLogsCSV(key):
+    mode = request.args.get('mode', None)
+    if mode == 'All':
+        mode = None
+    # simple api key auth
+    api_keys = {
+        'your_api_key_here': 'oauth2|discord|780303451980038165',
+    }
+    if key not in api_keys:
+        return jsonify({"error": "Invalid API key"}), 403
+    user_id = api_keys[key]
+    logs = getLogs(user=user_id, mode=mode)
+    csv_data = "id,mode,date,operator,number,type,line,start,end,notes,tags\n"
+    for log in logs:
+        csv_data += f'{log[0]},{log[2]},{log[3]},{log[4]},{log[5]},{log[6]},{log[7]},{log[8]},{log[9]},"{log[10]}","{log[11]}"\n'
+    return csv_data, 200, {'Content-Type': 'text/csv; charset=utf-8'}
 
 
 if __name__ == "__main__":

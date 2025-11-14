@@ -23,6 +23,12 @@
     <!-- apple shitty stuff -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Open graph medadata -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Trackpulse - Log your public transport journeys">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+    <meta property="og:description" content="TrackPulse is the #1 way to log your trips on public transport in Victoria & Australia. We have a range of features specifically designed for Victorian and Australian transport systems to make logging as easy and fun as possible.">
 </head>
 <body>
     {% include 'navbar.html' %}
@@ -42,8 +48,10 @@
         </div>
         <br>
         <div class="box-div" style="margin: 0 auto; text-align: center; max-width: 700px;">
-            <h2>d</h2>
+            <h2>Log your public transport trips</h2>
             <img src="{{ url_for('static', filename='images/logeg.png')}}" alt="logs as seen in trackpulse" width="300px">
+            <h2>View detailed statistics about your travels</h2>
+            <img src="{{ url_for('static', filename='images/stats.png')}}" alt="an example of most used lines" width="300px">
         <!-- <a href="/login">Login</a> -->
     </main>
     {% include 'footer.html' %}

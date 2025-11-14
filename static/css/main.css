@@ -22,7 +22,7 @@ body {
     width: 100px;
     font-weight: bold;
 }
-.log-entry input, .log-entry select, .log-entry textarea {
+.log-entry input, .log-entry select, .log-entry textarea, .box-div input, .box-div select, .box-div textarea, .box-div button {
     width: 200px;
     padding: 5px;
     margin-bottom: 10px;
@@ -31,6 +31,8 @@ body {
     background-color: #2e2e2e;
     color: white;
 }
+
+
 
 .success {
     color: #c0c0c0;

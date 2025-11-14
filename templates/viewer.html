@@ -12,6 +12,18 @@
     <body>
         {% include 'navbar.html' %}
         <h1>View Logs</h1>
+        <div class="box-div">
+            <form method="get" action="/view">
+                <label for="filter">Filter by mode:</label>
+                <select name="mode" id="filter">
+                {% for mode in modes %}
+                    <option value="{{ mode }}" {% if mode == request.args.get('mode', selected_mode) %}selected{% endif %}>{{ mode }}</option>
+                {% endfor %}
+                </select>
+                <button type="submit">Apply Filter</button>
+            </form>
+            </div>
+        </div>
         <div class="button-list" style="padding-bottom: 10px;"><a href='/view?table=true'>View as table</a></div>
         {% for log in logs %}
             <a href="/log/{{log[0]}}">
