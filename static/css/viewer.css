@@ -151,3 +151,19 @@ table tr:nth-child(even) {
 .log-single {
     box-sizing: border-box;
 }
+
+button.edit-log {
+    padding: 6px 12px;
+    background-color: #444;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s;
+}
+
+button.edit-log:hover {
+    background-color: #666;
+    transition: background-color 0.3s;
+}
