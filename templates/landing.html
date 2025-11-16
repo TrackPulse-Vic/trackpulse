@@ -4,6 +4,7 @@
     <title>Welcome to TrackPulse</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    <script src="https://kit.fontawesome.com/19da31ded3.js" crossorigin="anonymous"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="apple-touch-icon" sizes="57x57" href="{{ url_for('static', filename='icons/logos/apple-icon-57x57.png') }}">
     <link rel="apple-touch-icon" sizes="60x60" href="{{ url_for('static', filename='icons/logos/apple-icon-60x60.png') }}">
@@ -31,7 +32,7 @@
     <meta property="og:description" content="TrackPulse is the #1 way to log your trips on public transport in Victoria & Australia. We have a range of features specifically designed for Victorian and Australian transport systems to make logging as easy and fun as possible.">
 </head>
 <body>
-    {% include 'navbar.html' %}
+    <!-- {% include 'navbar.html' %} -->
     <header>
         <h1>Welcome to TrackPulse</h1>
         <h2>{{ logCount }} trips logged so far</h2>

@@ -49,7 +49,7 @@ lineColors = {
             'Sandringham': '#f07fb3',
             'Werribee': '#009646',
             'Williamstown': '#009646',
-            'Sunbury': '#fcb919',
+            'Sunbury': '#00a8e4',
             'Upfield': '#fcb919',
             'Craigieburn': '#fcb919',
             'Hurstbridge': '#d0222f',
@@ -275,7 +275,7 @@ def viewLogPage():
     logs = getLogs(user=session.get('user')['userinfo']['sub'], line=line, mode=mode, start=start, end=end, number=number, type=vehicle)
     
     if request.args.get('table') == 'true':
-        return render_template('logtable.html', logs=logs, modes=MODES)
+        return render_template('logtable.html', logs=logs,lineColors=lineColors, modes=MODES)
     else:
         return render_template('viewer.html', logs=logs, lineColors=lineColors, modes=MODES)
 
