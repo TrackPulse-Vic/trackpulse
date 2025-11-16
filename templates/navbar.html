@@ -2,7 +2,7 @@
 <script src="https://kit.fontawesome.com/19da31ded3.js" crossorigin="anonymous"></script>
 <nav class="navbar">
   <ul>
-    <li><img src='{{url_for("static", filename="icons/logos/android-icon-144x144.png")}}' class="logo", alt="Logo"></li>
+    <li class="logo"><img src='{{url_for("static", filename="icons/logos/android-icon-144x144.png")}}' class="logo", alt="Logo"></li>
       <li><a href="{{ url_for('mainPage') }}?src=nav"><i class="fa-solid fa-house"></i>  Home</a></li>
       <li><a href="{{ url_for('dashboardPage') }}"><i class="fa-solid fa-plus"></i>  Log</a></li>
       <li><a href="{{ url_for('statsPage') }}"><i class="fa-solid fa-chart-simple"></i> Statistics</a></li>

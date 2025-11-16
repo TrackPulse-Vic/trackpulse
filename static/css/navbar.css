@@ -59,10 +59,15 @@ body {
   .navbar {
     top: auto;
     bottom: 0;
+    padding-bottom: 10px;
   }
 
   body {
     margin-top: 0;
     margin-bottom: 70px;
+  }
+
+  .logo {
+    display: none;
   }
 }
