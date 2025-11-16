@@ -48,7 +48,7 @@
             </thead>
             <tbody>
             {% for log in logs %}
-            <tr style="background-color: {{ lineColors.get(log[2], {}).get(log[7], '#929598') }};">
+            <tr style="background-color: {{ lineColors.get(log[2], {}).get(log[7], '#000000') }};">
                 <td data-sort="{{ log[3] }}"><a href="/log/{{log[0]}}">{{ log[3] }}</a></td>
                 <td data-sort="{{ log[8] }}"><a href="/log/{{log[0]}}">{{ log[8] }}</a></td>
                 <td data-sort="{{ log[9] }}"><a href="/log/{{log[0]}}">{{ log[9] }}</a></td>
