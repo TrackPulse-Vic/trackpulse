@@ -102,12 +102,14 @@ def logout():
 
 @app.route("/")
 def mainPage():
+    logCount = len(getLogs())
+    
     if request.args.get('src') == 'nav':
-        return render_template('landing.html')
+        return render_template('landing.html', logCount=logCount)
     if session.get("user"):
         return redirect('/dashboard')
     else:   
-        return render_template('landing.html')
+        return render_template('landing.html', logCount=logCount)
 @app.route('/tpv')
 def tpvPage():
     return render_template('discordbot.html')
@@ -397,6 +399,10 @@ def apiPhoto(mode):
     return jsonify({"error": "Invalid mode"}), 400
 
 # user facing API
+@app.route('/api')
+def apiInfoPage():
+    return render_template('apiinfo.html')
+
 @app.route('/api/<key>/logs')
 def apiUserLogs(key):
     mode = request.args.get('mode', None)

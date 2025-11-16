@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Trackpulse API</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" sizes="96x96" href="{{ url_for('static', filename='icons/logos/favicon-96x96.png') }}">
+</head>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+</style>
+
+<body>
+    {% include 'navbar.html' %}
+    <h1>Trackpulse API documentation</h1>
+    <div class="box-div">
+        <p>The Trackpulse API allows you to read and add logs to your account.</p>
+        <p>Base URL: </p>
+        <h3>Keys</h3>
+        <p>Coming soon...</p>
+
+        <h3>Read Logs</h3>
+        <p><strong>GET <code>/api/&lt;key&gt;/logs</code></strong></p>
+        <p>URL parameters:</p>
+        <ul>
+            <li><code>mode</code> (optional): Filter logs by mode (e.g., victrain, nswbus, etc.)</li>
+        </ul>
+        <p>Response example:</p>
+        <pre>
+    {
+        "date": "2025-11-02",
+        "end": "Lilydale",
+        "id": 4671,
+        "line": "Lilydale",
+        "mode": "victrain",
+        "notes": "",
+        "number": "1M-1301T-2M",
+        "operator": "Metro Trains Melbourne",
+        "start": "Croydon",
+        "tags": null,
+        "type": "X'Trapolis 100"
+    }
+        </pre>
+        <p><strong>GET <code>/api/&lt;key&gt;/logs.csv</code></strong></p>
+        <p>URL parameters:</p>
+        <ul>
+            <li><code>mode</code> (optional): Filter logs by mode (e.g., victrain, nswbus, etc.)</li>
+        </ul>
+        <p>Response example:</p>
+        <pre>
+        id,mode,date,operator,number,type,line,start,end,notes,tags
+        4671,victrain,2025-11-02,Metro Trains Melbourne,1M-1301T-2M,X'Trapolis 100,Lilydale,Croydon,Lilydale,"","None"
+        </pre>
+    </div>
+
+</body>
