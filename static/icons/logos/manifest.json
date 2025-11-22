@@ -54,8 +54,23 @@
   "shortcuts": [
     {
       "name": "Log Victorian Train",
-      "url": "https://tpv.xm9g.net/log?mode=victrain",
+      "url": "https://trackpulse.xm9g.net/log?mode=victrain",
       "description": "Log Victorian Train"
+    },
+    {
+      "name": "Log Melbourne Tram",
+      "url": "https://trackpulse.xm9g.net/log?mode=victram",
+      "description": "Log Melbourne Tram"
+    },
+    {
+      "name": "Log Victorian Bus",
+      "url": "https://trackpulse.xm9g.net/log?mode=vicbus",
+      "description": "Log Victorian Bus"
+    },
+    {
+      "name": "Log NSW Train",
+      "url": "https://trackpulse.xm9g.net/log?mode=nswtrain",
+      "description": "Log NSW Train"
     }
   ],
   "categories": [

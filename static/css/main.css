@@ -1,15 +1,42 @@
+/* Light and dark theme variables */
+:root {
+    --background-color: #000000;
+    --text-color: #ffffff;
+    --primary-color: #1e1e1e;
+    --secondary-color: #2e2e2e;
+    --border-color: #555555;
+    --hover-color: #3e3e3e;
+    --button-color: #2e2e2e;
+    --button-border-color: gray;
+    --button-hover-color: #3e3e3e;
+}
+
+/* @media (prefers-color-scheme: light) {
+    :root {
+        --background-color: #ffffff;
+        --text-color: #000000;
+        --primary-color: #f0f0f0;
+        --secondary-color: #e0e0e0;
+        --border-color: #cccccc;
+        --hover-color: #d0d0d0;
+        --button-color: #e0e0e0;
+        --button-border-color: #aaaaaa;
+        --button-hover-color: #bbbbbb;
+    }
+} */
+
 body {
-    background-color: black;
-    color: white;
+    background-color:  var(--background-color);
+    color: var(--text-color);
     font-family: "Noto Sans", sans-serif;
 }
 
 .box-div {
-    border: 1px solid gray;
+    border: 1px solid var(--border-color);
     padding: 10px;
     margin-bottom: 10px;
     border-radius: 5px;
-    background-color: #1e1e1e;
+    background-color: var(--primary-color);
     width: max-content;
 }
 
@@ -26,10 +53,10 @@ body {
     width: 200px;
     padding: 5px;
     margin-bottom: 10px;
-    border: 1px solid #555;
+    border: 1px solid var(--button-border-color);
     border-radius: 3px;
-    background-color: #2e2e2e;
-    color: white;
+    background-color: var(--button-color);
+    color: var(--text-color);
 }
 
 
@@ -44,14 +71,14 @@ body {
 
 .button-list a {
     text-decoration: none;
-    color: white;
+    color: var(--text-color);
 }
 
 .button-list a {
     display: inline;
     font-size: large;
-    background-color: #2e2e2e;
-    border: gray 1px solid;
+    background-color: var(--button-color);
+    border: 1px solid var(--button-border-color);
     border-radius: 3px;
     padding: 5px;
     transition-duration: 0.5s;
