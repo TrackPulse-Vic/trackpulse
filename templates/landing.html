@@ -32,7 +32,7 @@
     <meta property="og:description" content="TrackPulse is the #1 way to log your trips on public transport in Victoria & Australia. We have a range of features specifically designed for Victorian and Australian transport systems to make logging as easy and fun as possible.">
 </head>
 <body>
-    {% if session.get('user') %}
+    {% if is_authenticated %}
         {% include 'navbar.html' %}
     {% endif %}
     <header>

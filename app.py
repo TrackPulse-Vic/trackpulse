@@ -105,11 +105,11 @@ def mainPage():
     logCount = len(getLogs())
     
     if request.args.get('src') == 'nav':
-        return render_template('landing.html', logCount=logCount)
+        return render_template('landing.html', logCount=logCount, is_authenticated=session.get("user") is not None)
     if session.get("user"):
         return redirect('/dashboard')
     else:   
-        return render_template('landing.html', logCount=logCount)
+        return render_template('landing.html', logCount=logCount, is_authenticated=False)
 @app.route('/tpv')
 def tpvPage():
     return render_template('discordbot.html')

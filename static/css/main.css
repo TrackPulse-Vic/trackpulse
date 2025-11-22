@@ -75,7 +75,7 @@ table {
 th, td {
     border: 1px solid #555; padding: 8px; text-align: left; word-wrap: break-word;
 }
-tr:nth-child(odd) {
+tr:nth-child(even) {
     background-color: #2e2e2e;
 }
 
