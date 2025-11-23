@@ -7,6 +7,7 @@ from flask import Flask, jsonify, redirect, render_template, request, url_for
 from authlib.integrations.flask_client import OAuth
 from dotenv import find_dotenv, load_dotenv
 from flask import Flask, redirect, render_template, session, url_for
+from flask_limiter import Limiter
 import tempfile
 
 import requests
@@ -14,14 +15,18 @@ import requests
 from scripts.converter import convertLogs
 from scripts.log import getOperator, logTrip
 from scripts.map.main import getVehiclePositions
-from scripts.reader import getLogs
+from scripts.reader import deleteLog, getLogs
 from scripts.trainset import setNumber, setNumberTram
 from scripts.vrpApi import getTrainImage
+
 
 dotenv.load_dotenv()
 
 app = Flask(__name__)
 app.secret_key =os.getenv('APP_SECRET_KEY')
+
+# Flask-Limiter instance
+limiter = Limiter(app)
 
 # auth0 oauth
 oauth = OAuth(app)
@@ -273,12 +278,14 @@ def viewLogPage():
     number = request.args.get('number', None)
     vehicle = request.args.get('vehicle', None)
     
+    message = request.args.get('message', None)
+    
     logs = getLogs(user=session.get('user')['userinfo']['sub'], line=line, mode=mode, start=start, end=end, number=number, type=vehicle)
     
     if request.args.get('table') == 'true':
-        return render_template('logtable.html', logs=logs,lineColors=lineColors, modes=MODES)
+        return render_template('logtable.html', logs=logs,lineColors=lineColors, modes=MODES, message=message)
     else:
-        return render_template('viewer.html', logs=logs, lineColors=lineColors, modes=MODES)
+        return render_template('viewer.html', logs=logs, lineColors=lineColors, modes=MODES, message=message)
 
 # single log page
 @app.route('/log/<int:id>')
@@ -352,8 +359,31 @@ def addLogAPI():
     except Exception as e:
         print(f"Error in /api/addLog: {e}")
         message = "Internal Server Error, please try again later."
-    finally:
-        return redirect('/log?mode=' + logInfo.get('mode')+f'&message={message}')
+#Log delete API
+@app.route('/api/deleteLog', methods=['POST'])
+@limiter.limit("5 per minute")
+def deleteLogAPI():
+    try:
+        print("Delete log request received")
+        logID = request.get_json().get('id')
+        if not session.get("user"):
+            return 'user not authenticated', 401
+        
+        logs = getLogs(user=session.get('user')['userinfo']['sub'], id=logID)
+        if not logs or len(logs) == 0:
+            return "Log not found or not allowed to be deleted!", 404
+        
+        succsess = deleteLog(logID)
+        
+        if succsess:
+            print(f"Log ID {logID} deleted successfully")
+            return 'Log deleted successfully', 200
+        else:
+            print(f"Error deleting log ID {logID}")
+            return 'Error deleting log', 500
+    except Exception as e:
+        print(f"Error in /api/deleteLog: {e}")
+        return "Internal Server Error, please try again later.", 500
 
 # convert page and api
 @app.route('/convert')

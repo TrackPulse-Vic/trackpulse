@@ -20,7 +20,7 @@
                 <p>Number: {{ thing[5] }}</p>
                 <p class="note">{{ thing[10] }}</p>
                 <button class="edit-log">Edit</button>
-                <button class="edit-log">Delete</button>
+                <button class="edit-log" onclick="fetch('/api/deleteLog', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: '{{ thing[0] }}'}) }).then(r => r.ok ? window.location.href = '/view?message=Log {{thing[0]}} deleted successfully&table=true' : alert('Error'))">Delete</button>
                 </div>
         {% endfor %}
     <script>

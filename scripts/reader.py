@@ -44,3 +44,14 @@ def getLogs(user=None, mode=None, line=None, start=None, end=None, type=None, da
     logs = cursor.fetchall()
     conn.close()
     return logs
+
+def deleteLog(logID):
+    try:
+        conn = sqlite3.connect('databases/logs.db')
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM logs WHERE id=?", (logID,))
+        conn.commit()
+        conn.close()
+        return True
+    except sqlite3.Error:
+        return False

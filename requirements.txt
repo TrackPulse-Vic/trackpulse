@@ -2,3 +2,4 @@ flask
 python-dotenv
 authlib
 requests
+flask-limiter

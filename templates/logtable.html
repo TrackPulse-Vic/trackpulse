@@ -18,6 +18,9 @@
     <body>
         {% include 'navbar.html' %}
         <h1>View Logs</h1>
+        {% if message %}
+            <div class="box-div">{{ message }}</div>
+        {% endif %}
         <div class="box-div">
             <form method="get" action="/view">
                 <label for="filter">Filter by mode:</label>
