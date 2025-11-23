@@ -16,6 +16,7 @@ from scripts.log import getOperator, logTrip
 from scripts.map.main import getVehiclePositions
 from scripts.reader import getLogs
 from scripts.trainset import setNumber, setNumberTram
+from scripts.vrpApi import getTrainImage
 
 dotenv.load_dotenv()
 
@@ -290,6 +291,12 @@ def singleLogPage(id):
     if not log or len(log) == 0:
         return "Log not found or not allowed to be seen!", 404
     return render_template('singlelog.html', log=log, lineColors=lineColors)
+
+# vehicle page
+@app.route('/stats/<mode>/<vehicle>')
+def trainPage(mode, vehicle):
+    photoURL, photographer = getTrainImage(vehicle.split('-')[0], thumbnail=False)
+    return render_template('trainpage.html',mode=mode, vehicle=vehicle, photoURL=photoURL, photographer=photographer)
 
 # log add api
 @app.route('/api/addLog', methods=['POST'])
