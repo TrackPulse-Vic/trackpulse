@@ -12,6 +12,7 @@ import tempfile
 
 import requests
 
+from scripts.apiKeyManager import checkKey
 from scripts.converter import convertLogs
 from scripts.log import getOperator, logTrip
 from scripts.map.main import getVehiclePositions
@@ -475,15 +476,16 @@ def apiUserLogs(key):
 @app.route('/api/<key>/logs.csv')
 def apiUserLogsCSV(key):
     mode = request.args.get('mode', None)
+    globalLogs = request.args.get('global', 'false').lower() == 'true'
     if mode == 'All':
         mode = None
-    # simple api key auth
-    api_keys = {
-        'your_api_key_here': 'oauth2|discord|780303451980038165',
-    }
-    if key not in api_keys:
+    user_id, privileged = checkKey(key)
+    if not user_id:
         return jsonify({"error": "Invalid API key"}), 403
-    user_id = api_keys[key]
+    # get all logs if privileged and its in the args
+    if privileged and globalLogs:
+        user_id = None
+    
     logs = getLogs(user=user_id, mode=mode)
     csv_data = "id,mode,date,operator,number,type,line,start,end,notes,tags\n"
     for log in logs:
