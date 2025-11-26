@@ -359,6 +359,7 @@ def addLogAPI():
     except Exception as e:
         print(f"Error in /api/addLog: {e}")
         message = "Internal Server Error, please try again later."
+        
 #Log delete API
 @app.route('/api/deleteLog', methods=['POST'])
 @limiter.limit("5 per minute")
@@ -488,6 +489,11 @@ def apiUserLogsCSV(key):
     for log in logs:
         csv_data += f'{log[0]},{log[2]},{log[3]},{log[4]},{log[5]},{log[6]},{log[7]},{log[8]},{log[9]},"{log[10]}","{log[11]}"\n'
     return csv_data, 200, {'Content-Type': 'text/csv; charset=utf-8'}
+
+# user facing add log
+@app.route('/api/<key>/addLog', methods=['POST'])
+def apiAddLog(key):
+    
 
 
 if __name__ == "__main__":

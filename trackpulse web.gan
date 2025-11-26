@@ -88,6 +88,7 @@
             <taskproperty id="tpd8" name="coordinator" type="default" valuetype="text"/>
             <taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text"/>
         </taskproperties>
+        <task id="0" uid="98937eba253f4a489a11bd2e24b8fccd" name="Delete Log API" meeting="false" start="2025-11-25" duration="1" complete="0" expand="true"/>
     </tasks>
     <resources/>
     <allocations/>
