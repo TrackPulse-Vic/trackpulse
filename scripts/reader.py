@@ -16,10 +16,10 @@ def getLogs(user=None, mode=None, line=None, start=None, end=None, type=None, da
         query += " AND route=?"
         params.append(line)
     if start:
-        query += " AND date>=?"
+        query += " AND start=?"
         params.append(start)
     if end:
-        query += " AND date<=?"
+        query += " AND end=?"
         params.append(end)
     if type:
         query += " AND type=?"

@@ -27,11 +27,12 @@ def logTrip(user, mode, date, vehicleNumber, vehicleType, start, end, line, oper
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (user, mode, date, operator, vehicleNumber, vehicleType, line, start, end, note, tags))
         conn.commit()
-        conn.close()
         return True
     except Exception as e:
         print(f"Error adding trip to Database: {e}")
         return False
+    finally:
+        conn.close()
     
 def getOperator(mode, vType):
     if mode == 'victrain':

@@ -272,6 +272,7 @@ def viewLogPage():
     
     line = request.args.get('line', None)
     mode = request.args.get('mode', None)
+    date = request.args.get('date', None)
     if mode == 'All':
         mode = None
     start= request.args.get('start', None)
@@ -281,7 +282,7 @@ def viewLogPage():
     
     message = request.args.get('message', None)
     
-    logs = getLogs(user=session.get('user')['userinfo']['sub'], line=line, mode=mode, start=start, end=end, number=number, type=vehicle)
+    logs = getLogs(user=session.get('user')['userinfo']['sub'], line=line, mode=mode, start=start, end=end, number=number, type=vehicle, date=date)
     
     if request.args.get('table') == 'true':
         return render_template('logtable.html', logs=logs,lineColors=lineColors, modes=MODES, message=message)
@@ -501,17 +502,17 @@ def apiAddLog(key):
     logInfo = request.form
     
     # thinh to make it so only tpv can add logs for other users
-    if logInfo.get('userid'):
+    if logInfo.get('userid') != userid:
         if privileged:
             userid = logInfo.get('userid')
         else:
             return jsonify({"error": "Not authorized to log for other users!"}), 403
     
-    if logInfo.get('date') == '':
+    if logInfo.get('date') == None:
         date = datetime.datetime.now().strftime('%Y-%m-%d')
     else:
         date = logInfo.get('date')
-    if logInfo.get('type') != "":
+    if logInfo.get('type') != None:
         type = logInfo.get('type')
         number = logInfo.get('number')
     else:
@@ -519,6 +520,13 @@ def apiAddLog(key):
             number, type = setNumber(logInfo.get('number'))
         elif logInfo.get('mode') == 'victram':
             number, type = setNumberTram(logInfo.get('number'))
+            
+    # check date format
+    try:
+        datetime.datetime.strptime(date, '%Y-%m-%d')
+    except ValueError:
+        return jsonify({"error": "Invalid date format, should be YYYY-MM-DD"}), 400
+    
     logInfo = dict(logInfo)
     logInfo['user'] = userid
     logInfo['date'] = date
@@ -527,8 +535,9 @@ def apiAddLog(key):
     logInfo['user'] = userid
     logInfo['tags'] = None
     logInfo['operator'] = getOperator(logInfo.get('mode'), logInfo.get('type'))
+    
     success = logTrip(
-        user=userid,
+        user=logInfo.get('user'),
         mode=logInfo.get('mode'),
         date=logInfo.get('date'),
         vehicleNumber=logInfo.get('number'),
