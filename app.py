@@ -495,7 +495,58 @@ def apiUserLogsCSV(key):
 # user facing add log
 @app.route('/api/<key>/addLog', methods=['POST'])
 def apiAddLog(key):
+    userid, privileged = checkKey(key)
+    if not userid:
+        return jsonify({"error": "Invalid API key"}), 403
+    logInfo = request.form
     
+    # thinh to make it so only tpv can add logs for other users
+    if logInfo.get('userid'):
+        if privileged:
+            userid = logInfo.get('userid')
+        else:
+            return jsonify({"error": "Not authorized to log for other users!"}), 403
+    
+    if logInfo.get('date') == '':
+        date = datetime.datetime.now().strftime('%Y-%m-%d')
+    else:
+        date = logInfo.get('date')
+    if logInfo.get('type') != "":
+        type = logInfo.get('type')
+        number = logInfo.get('number')
+    else:
+        if logInfo.get('mode') == 'victrain':
+            number, type = setNumber(logInfo.get('number'))
+        elif logInfo.get('mode') == 'victram':
+            number, type = setNumberTram(logInfo.get('number'))
+    logInfo = dict(logInfo)
+    logInfo['user'] = userid
+    logInfo['date'] = date
+    logInfo['number'] = number
+    logInfo['type'] = type
+    logInfo['user'] = userid
+    logInfo['tags'] = None
+    logInfo['operator'] = getOperator(logInfo.get('mode'), logInfo.get('type'))
+    success = logTrip(
+        user=userid,
+        mode=logInfo.get('mode'),
+        date=logInfo.get('date'),
+        vehicleNumber=logInfo.get('number'),
+        vehicleType=logInfo.get('type'),
+        start=logInfo.get('start'),
+        end=logInfo.get('end'),
+        line=logInfo.get('line'),
+        operator=logInfo.get('operator'),
+        note=logInfo.get('notes'),
+        tags=logInfo.get('tags'),
+    )
+    if not success:
+        message = "Error adding trip to Database, please try again."
+        print(f'error adding log: {logInfo}')
+        return jsonify({"error": message}), 500
+    else:
+        message = jsonify(logInfo)
+        return message, 200
 
 
 if __name__ == "__main__":
