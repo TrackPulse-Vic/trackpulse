@@ -500,7 +500,7 @@ def apiAddLog(key):
     if not userid:
         return jsonify({"error": "Invalid API key"}), 403
     logInfo = request.form
-    
+        
     # thinh to make it so only tpv can add logs for other users
     if logInfo.get('userid') != userid:
         if privileged:
@@ -518,8 +518,22 @@ def apiAddLog(key):
     else:
         if logInfo.get('mode') == 'victrain':
             number, type = setNumber(logInfo.get('number'))
+            if number == None:
+                number = logInfo.get('number')
+            if type == None:
+                type = logInfo.get('type')
+                
         elif logInfo.get('mode') == 'victram':
             number, type = setNumberTram(logInfo.get('number'))
+            if number == None:
+                number = logInfo.get('number')
+            if type == None:
+                type = logInfo.get('type')
+                
+    # remove dashes
+    if number.endswith('-'):
+        number = number[:-1]
+    
             
     # check date format
     try:
@@ -536,6 +550,9 @@ def apiAddLog(key):
     logInfo['tags'] = None
     logInfo['operator'] = getOperator(logInfo.get('mode'), logInfo.get('type'))
     
+    if logInfo.get('note') == None:
+        logInfo['note'] = ''
+    
     success = logTrip(
         user=logInfo.get('user'),
         mode=logInfo.get('mode'),
@@ -546,7 +563,7 @@ def apiAddLog(key):
         end=logInfo.get('end'),
         line=logInfo.get('line'),
         operator=logInfo.get('operator'),
-        note=logInfo.get('notes'),
+        note=logInfo.get('note'),
         tags=logInfo.get('tags'),
     )
     if not success:
