@@ -44,7 +44,7 @@ def getOperator(mode, vType):
             operator = None
             
     elif mode == 'victram':
-        if vType in ['G Class','W Class','Z Class', "A Class", 'B Class','C Class', 'C2 Class', 'D Class','E Class']:
+        if vType in ['G-Class','W-Class','Z-Class', "A-Class", 'B-Class','C-Class', 'C2-Class', 'D-Class','E-Class']:
             operator = 'Yarra Trams'
         else:
             operator = None
