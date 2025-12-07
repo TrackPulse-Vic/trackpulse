@@ -566,12 +566,13 @@ def apiAddLog(key):
         note=logInfo.get('note'),
         tags=logInfo.get('tags'),
     )
+    
     if not success:
         message = "Error adding trip to Database, please try again."
         print(f'error adding log: {logInfo}')
         return jsonify({"error": message}), 500
     else:
-        message = jsonify(logInfo)
+        message = jsonify({**logInfo, 'log_id': success})
         return message, 200
 
 

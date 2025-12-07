@@ -27,7 +27,7 @@ def logTrip(user, mode, date, vehicleNumber, vehicleType, start, end, line, oper
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (user, mode, date, operator, vehicleNumber, vehicleType, line, start, end, note, tags))
         conn.commit()
-        return True
+        return cursor.lastrowid
     except Exception as e:
         print(f"Error adding trip to Database: {e}")
         return False
