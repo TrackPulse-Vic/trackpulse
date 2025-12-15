@@ -298,7 +298,7 @@ def singleLogPage(id):
         print(f'Error: {e}')
         return "error loading log", 500
     if not log or len(log) == 0:
-        return "Log not found or not allowed to be seen!", 404
+        return render_template('custommessage.html', message="You do not have permission to view this trip!"), 404
     return render_template('singlelog.html', log=log, lineColors=lineColors)
 
 # vehicle page

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{{message}} - TrackPulse</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/viewer.css') }}">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8">
+        <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icons/logos/favicon.ico') }}">
+    </head>
+
+    <body>
+        {% include 'navbar.html' %}
+        <h1>{{ message }}</h1>
+    </body>
+</html>

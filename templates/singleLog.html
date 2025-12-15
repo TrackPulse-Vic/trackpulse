@@ -14,16 +14,90 @@
         {% for thing in log %}
             <div class="log-single" style="--accent-color: {{ lineColors.get(thing[2], {}).get(thing[7], '#929598') }};">
                 <!-- <img class="train-image" data-vehicle="{{ thing[5] }}" src="" alt="loading photo..."> -->
-                <p>{{ thing[8] }} to {{ thing[9] }} | {{ thing[3] }}</p>
-                <p>Line: {{ thing[7] }}</p>
-                <p>Vehicle: {{ thing[6] }}</p>
-                <p>Number: {{ thing[5] }}</p>
-                <p class="note">{{ thing[10] }}</p>
-                <button class="edit-log">Edit</button>
-                <button class="edit-log" onclick="fetch('/api/deleteLog', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: '{{ thing[0] }}'}) }).then(r => r.ok ? window.location.href = '/view?message=Log {{thing[0]}} deleted successfully&table=true' : alert('Error'))">Delete</button>
+                <div class="log-display">
+                    <p class="display-route">{{ thing[8] }} to {{ thing[9] }} | {{ thing[3] }}</p>
+                    <p class="display-line">Line: {{ thing[7] }}</p>
+                    <p class="display-vehicle">Vehicle: {{ thing[6] }}</p>
+                    <p class="display-number">Number: {{ thing[5] }}</p>
+                    <p class="note">{{ thing[10] }}</p>
+                </div>
+
+                <div class="log-edit-form" style="display:none;">
+                    <label>Origin: <input name="origin" class="edit-origin" value="{{ thing[8] }}"></label>
+                    <label>Destination: <input name="destination" class="edit-destination" value="{{ thing[9] }}"></label>
+                    <label>Date/Time: <input name="datetime" class="edit-datetime" value="{{ thing[3] }}"></label>
+                    <label>Line: <input name="line" class="edit-line" value="{{ thing[7] }}"></label>
+                    <label>Vehicle: <input name="vehicle" class="edit-vehicle" value="{{ thing[6] }}"></label>
+                    <label>Number: <input name="number" class="edit-number" value="{{ thing[5] }}"></label>
+                    <label>Note: <input name="note" class="edit-note" value="{{ thing[10] }}"></label>
+                    <div class="edit-actions">
+                        <button class="edit-log save-edit">Save</button>
+                        <button class="edit-log cancel-edit" type="button">Cancel</button>
+                    </div>
+                </div>
+
+                <button class="edit-log edit-btn">Edit</button>
+                <button class="edit-log delete-log" onclick="if(confirm('Are you sure you want to delete this log?')) { fetch('/api/deleteLog', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: '{{ thing[0] }}'}) }).then(r => r.ok ? window.location.href = '/view?message=Log {{thing[0]}} deleted successfully&table=true' : alert('Error')) }">Delete</button>
                 </div>
         {% endfor %}
     <script>
+        // Edit form handling for each log entry
+        function initEditButtons() {
+            document.querySelectorAll('.log-single').forEach(container => {
+                const editBtn = container.querySelector('.edit-btn');
+                const display = container.querySelector('.log-display');
+                const form = container.querySelector('.log-edit-form');
+                const saveBtn = container.querySelector('.save-edit');
+                const cancelBtn = container.querySelector('.cancel-edit');
+                const deleteBtn = container.querySelector('.delete-log');
+                const id = deleteBtn ? (deleteBtn.getAttribute('onclick').match(/\{id:\s*'?(\d+)'?\}/) || [])[1] : null;
+
+                if (!editBtn || !form) return;
+
+                editBtn.addEventListener('click', () => {
+                    display.style.display = 'none';
+                    form.style.display = '';
+                    editBtn.style.display = 'none';
+                });
+
+                cancelBtn.addEventListener('click', () => {
+                    form.style.display = 'none';
+                    display.style.display = '';
+                    editBtn.style.display = '';
+                });
+
+                saveBtn.addEventListener('click', async () => {
+                    const payload = {
+                        id: id,
+                        origin: container.querySelector('.edit-origin').value,
+                        destination: container.querySelector('.edit-destination').value,
+                        datetime: container.querySelector('.edit-datetime').value,
+                        line: container.querySelector('.edit-line').value,
+                        vehicle: container.querySelector('.edit-vehicle').value,
+                        number: container.querySelector('.edit-number').value,
+                        note: container.querySelector('.edit-note').value
+                    };
+
+                    try {
+                        const res = await fetch('/api/editLog', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (res.ok) {
+                            window.location.reload();
+                        } else {
+                            const text = await res.text();
+                            alert('Error saving log: ' + (text || res.statusText));
+                        }
+                    } catch (err) {
+                        console.error('Edit request failed', err);
+                        alert('Network error while saving.');
+                    }
+                });
+            });
+        }
         async function fetchAndSetImage(imgElement) {
             const vehicle = imgElement.getAttribute('data-vehicle');
             if (!vehicle) return;
@@ -71,6 +145,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', initLazyLoad);
+        document.addEventListener('DOMContentLoaded', initEditButtons);
         </script>
     </body>
 </html>
