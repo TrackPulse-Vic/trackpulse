@@ -298,7 +298,7 @@ def singleLogPage(id):
         print(f'Error: {e}')
         return "error loading log", 500
     if not log or len(log) == 0:
-        return "Log not found or not allowed to be seen!", 404
+        return render_template('custommessage.html', message="You do not have permission to view this trip!"), 404
     return render_template('singlelog.html', log=log, lineColors=lineColors)
 
 # vehicle page
@@ -573,12 +573,13 @@ def apiAddLog(key):
         note=logInfo.get('note'),
         tags=logInfo.get('tags'),
     )
+    
     if not success:
         message = "Error adding trip to Database, please try again."
         print(f'error adding log: {logInfo}')
         return jsonify({"error": message}), 500
     else:
-        message = jsonify(logInfo)
+        message = jsonify({**logInfo, 'log_id': success})
         return message, 200
 
 
