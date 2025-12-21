@@ -478,14 +478,21 @@ def apiUserLogs(key):
 def apiUserLogsCSV(key):
     mode = request.args.get('mode', None)
     globalLogs = request.args.get('global', 'false').lower() == 'true'
+    userid = request.args.get('userid', None)
+    
     if mode == 'All':
         mode = None
+    
     user_id, privileged = checkKey(key)
     if not user_id:
         return jsonify({"error": "Invalid API key"}), 403
+    
     # get all logs if privileged and its in the args
     if privileged and globalLogs:
         user_id = None
+    # get logs for specific userid if privileged
+    elif privileged and userid:
+        user_id = userid
     
     logs = getLogs(user=user_id, mode=mode)
     csv_data = "id,mode,date,operator,number,type,line,start,end,notes,tags\n"
