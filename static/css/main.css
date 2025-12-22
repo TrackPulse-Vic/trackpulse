@@ -38,6 +38,11 @@ body {
     border-radius: 5px;
     background-color: var(--primary-color);
     width: max-content;
+    box-shadow: 
+    /* Ambient Shadow */
+    0px 4px 6px -1px rgba(0, 0, 0, 0.1),
+    /* Key Shadow */
+    0px 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .box-div h3 {
@@ -83,6 +88,11 @@ body {
     padding: 5px;
     transition-duration: 0.5s;
     cursor:pointer;
+    box-shadow: 
+    /* Ambient Shadow */
+    0px 4px 6px -1px rgba(0, 0, 0, 0.1),
+    /* Key Shadow */
+    0px 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .button-list a:hover {
