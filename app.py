@@ -495,10 +495,34 @@ def apiUserLogsCSV(key):
         user_id = userid
     
     logs = getLogs(user=user_id, mode=mode)
-    csv_data = "id,mode,date,operator,number,type,line,start,end,notes,tags\n"
+    csv_data = "id,number,type,date,line,start,end,note,operator,mode,tag\n"
     for log in logs:
-        csv_data += f'{log[0]},{log[2]},{log[3]},{log[4]},{log[5]},{log[6]},{log[7]},{log[8]},{log[9]},"{log[10]}","{log[11]}"\n'
+        csv_data += f'{log[0]},{log[5]},{log[6]},{log[3]},{log[7]},{log[8]},{log[9]},"{log[10]}",{log[4]},{log[2]},{log[11]}\n'
     return csv_data, 200, {'Content-Type': 'text/csv; charset=utf-8'}
+
+# csv via auth token
+@app.route('/api/logs.csv')
+def apiUserLogsCSVAuth():
+    mode = request.args.get('mode', None)
+    userid = session.get('user')['userinfo']['sub']
+    
+    if mode == 'All':
+        mode = None
+    
+    if not userid:
+        return jsonify({"error": "Invalid API key"}), 403
+    
+    logs = getLogs(user=userid, mode=mode)
+    csv_data = "id,mode,date,operator,number,type,line,start,end,notes,tags\n"
+    csv_data = "id,number,type,date,line,start,end,note,operator,mode,tag\n"
+    for log in logs:
+        csv_data += f'{log[0]},{log[5]},{log[6]},{log[3]},{log[7]},{log[8]},{log[9]},"{log[10]}",{log[4]},{log[2]},{log[11]}\n'
+    filename = f"logs-{mode if mode else 'all'}.csv"
+    headers = {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': f'attachment; filename="{filename}"'
+    }
+    return csv_data, 200, headers
 
 # user facing add log
 @app.route('/api/<key>/addLog', methods=['POST'])
