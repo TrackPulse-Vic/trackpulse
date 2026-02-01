@@ -40,6 +40,7 @@
         <table>
             <thead>
             <tr>
+                <th>ID</th>
                 <th>Date</th>
                 <th>Start</th>
                 <th>End</th>
@@ -53,6 +54,7 @@
             <tbody>
             {% for log in logs %}
             <tr style="background-color: {{ lineColors.get(log[2], {}).get(log[7], '#000000') }};">
+                <td data-sort="{{ log[0] }}"><a href="/log/{{ log[0] }}">{{ log[0] }}</a></td>
                 <td data-sort="{{ log[3] }}"><a href="/view?date={{ log[3] }}&table=true">{{ log[3] }}</a></td>
                 <td data-sort="{{ log[8] }}"><a href="/view?start={{ log[8] }}&table=true">{{ log[8] }}</a></td>
                 <td data-sort="{{ log[9] }}"><a href="/view?end={{ log[9] }}&table=true">{{ log[9] }}</a></td>

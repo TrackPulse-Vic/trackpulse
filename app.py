@@ -364,7 +364,7 @@ def addLogAPI():
         
 #Log delete API
 @app.route('/api/deleteLog', methods=['POST'])
-@limiter.limit("5 per minute")
+@limiter.limit("10 per minute")
 def deleteLogAPI():
     try:
         print("Delete log request received")
@@ -493,12 +493,43 @@ def apiUserLogsCSV(key):
     # get logs for specific userid if privileged
     elif privileged and userid:
         user_id = userid
-    
+        
     logs = getLogs(user=user_id, mode=mode)
     csv_data = "id,number,type,date,line,start,end,note,operator,mode,tag\n"
     for log in logs:
         csv_data += f'{log[0]},{log[5]},{log[6]},{log[3]},{log[7]},{log[8]},{log[9]},"{log[10]}",{log[4]},{log[2]},{log[11]}\n'
     return csv_data, 200, {'Content-Type': 'text/csv; charset=utf-8'}
+
+# get single log by id user facing api
+@app.route('/api/<key>/log/<int:id>')
+def apiUserSingleLog(key, id):
+    userid, privileged = checkKey(key)
+    if not userid:
+        return jsonify({"error": "Invalid API key"}), 403
+    
+    if privileged:
+        userid = None
+    
+    logs = getLogs(user=userid, id=id)
+    if not logs or len(logs) == 0:
+        return jsonify({"error": "Log not found or not allowed to be viewed!"}), 404
+    
+    log = logs[0]
+    log_data = {
+        'user': log[1],
+        'id': log[0],
+        'mode': log[2],
+        'date': log[3],
+        'operator': log[4],
+        'number': log[5],
+        'type': log[6],
+        'line': log[7],
+        'start': log[8],
+        'end': log[9],
+        'notes': log[10],
+        'tags': log[11],
+    }
+    return jsonify(log_data)
 
 # csv via auth token
 @app.route('/api/logs.csv')
@@ -605,6 +636,35 @@ def apiAddLog(key):
     else:
         message = jsonify({**logInfo, 'log_id': success})
         return message, 200
+    
+# user facing delete log via API key
+@app.route('/api/<key>/deleteLog', methods=['POST'])
+@limiter.limit("10 per minute")
+def apiDeleteLog(key):
+    userid, privileged = checkKey(key)
+    if not userid:
+        return jsonify({"error": "Invalid API key"}), 403
+
+    data = request.get_json() or request.form
+    logID = data.get('id')
+    useridLogToDelete = data.get('userid', userid)
+
+    # Only privileged keys can delete logs for other users
+    if useridLogToDelete != userid:
+        if privileged:
+            userid = useridLogToDelete
+        else:
+            return jsonify({"error": "Not authorized to delete logs for other users!"}), 403
+
+    logs = getLogs(user=userid, id=logID)
+    if not logs or len(logs) == 0:
+        return jsonify({"error": "Log not found or not allowed to be deleted!"}), 404
+
+    success = deleteLog(logID)
+    if success:
+        return jsonify({"success": True, "message": "Log deleted successfully"}), 200
+    else:
+        return jsonify({"error": "Error deleting log"}), 500
 
 
 if __name__ == "__main__":
