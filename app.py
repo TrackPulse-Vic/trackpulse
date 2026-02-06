@@ -310,20 +310,28 @@ def trainPage(mode, vehicle):
 # log add api
 @app.route('/api/addLog', methods=['POST'])
 def addLogAPI():
+    '''
+    internal api for adding logs from the web app
+    '''
     try:
+        # auth verification stuff
         logInfo = request.form
         if not session.get("user"):
             return 'user not authenticated', 401
         
+        # date will be today if not provided
         if logInfo.get('date') == '':
             date = datetime.datetime.now().strftime('%Y-%m-%d')
         else:
             date = logInfo.get('date')
-            
+        
+        # get type and number of the vehicle
         if logInfo.get('type') != "":
+            # manual
             type = logInfo.get('type')
             number = logInfo.get('number')
         else:
+            # auto detect
             if logInfo.get('mode') == 'victrain':
                 number, type = setNumber(logInfo.get('number'))
             elif logInfo.get('mode') == 'victram':
@@ -666,6 +674,6 @@ def apiDeleteLog(key):
     else:
         return jsonify({"error": "Error deleting log"}), 500
 
-
+# run ts
 if __name__ == "__main__":
     app.run(debug=True, port=5002)
