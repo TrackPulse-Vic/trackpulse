@@ -18,6 +18,7 @@ from scripts.log import getOperator, logTrip
 from scripts.map.main import getVehiclePositions
 from scripts.reader import deleteLog, getLogs
 from scripts.trainset import setNumber, setNumberTram
+from scripts.userDBmanager import addUser
 from scripts.vrpApi import getTrainImage
 
 
@@ -87,11 +88,14 @@ def login():
     return oauth.auth0.authorize_redirect(
         redirect_uri=url_for("callback", _external=True)
     )
+    
 @app.route("/callback", methods=["GET", "POST"])
 def callback():
     token = oauth.auth0.authorize_access_token()
     session["user"] = token
+    addUser(session["user"]['userinfo']['sub'], session["user"]['userinfo']['name'], session["user"]['userinfo']['email']) # add user to database if not exists
     return redirect("/dashboard")
+
 @app.route("/logout")
 def logout():
     session.clear()
