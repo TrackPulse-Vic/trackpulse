@@ -1,6 +1,6 @@
 import datetime
 import os
-from typing import Counter
+from collections import Counter
 from urllib.parse import quote_plus, urlencode
 import dotenv
 from flask import Flask, jsonify, redirect, render_template, request, url_for
@@ -82,6 +82,90 @@ lineColors = {
 global MODES
 MODES = ['All', 'victrain', 'victram', 'vicbus', 'nswtrain', 'nswbus', 'nswferry', 'nswlightrail', 'satrain', 'satram', 'watrain', 'wabus', 'actlightrail', 'actbus']
 
+
+def build_dashboard_data(logs):
+    mode_counts = Counter()
+    operator_counts = Counter()
+    type_counts = Counter()
+    route_counts = Counter()
+    start_counts = Counter()
+    end_counts = Counter()
+    month_counts = Counter()
+    weekday_counts = Counter()
+
+    for log in logs:
+        mode_counts[log[2] or 'Unknown'] += 1
+        operator_counts[log[4] or 'Unknown'] += 1
+        type_counts[log[6] or 'Unknown'] += 1
+        route_counts[log[7] or 'Unassigned'] += 1
+        start_counts[log[8] or 'Unknown'] += 1
+        end_counts[log[9] or 'Unknown'] += 1
+
+        try:
+            parsed_date = datetime.datetime.strptime(str(log[3])[:10], '%Y-%m-%d')
+        except (TypeError, ValueError):
+            parsed_date = None
+
+        if parsed_date:
+            month_counts[parsed_date.strftime('%Y-%m')] += 1
+            weekday_counts[parsed_date.strftime('%a')] += 1
+
+    weekday_order = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    month_labels = sorted(month_counts.keys())
+    month_chart_labels = [datetime.datetime.strptime(month, '%Y-%m').strftime('%b %Y') for month in month_labels]
+    month_chart_values = [month_counts[month] for month in month_labels]
+
+    recent_logs = []
+    for log in logs[:8]:
+        recent_logs.append({
+            'id': log[0],
+            'mode': log[2],
+            'date': log[3],
+            'operator': log[4],
+            'number': log[5],
+            'type': log[6],
+            'route': log[7],
+            'start': log[8],
+            'end': log[9],
+            'notes': log[10],
+        })
+
+    def top_entries(counter, limit=6):
+        items = counter.most_common(limit)
+        return {
+            'labels': [item[0] for item in items],
+            'values': [item[1] for item in items],
+        }
+
+    summary = {
+        'total_logs': len(logs),
+        'mode_count': len(mode_counts),
+        'operator_count': len(operator_counts),
+        'route_count': len(route_counts),
+        'top_mode': mode_counts.most_common(1)[0][0] if mode_counts else 'None yet',
+        'top_route': route_counts.most_common(1)[0][0] if route_counts else 'None yet',
+        'latest_trip': logs[0][3] if logs else 'No logs yet',
+    }
+
+    return {
+        'summary': summary,
+        'monthly': {
+            'labels': month_chart_labels,
+            'values': month_chart_values,
+        },
+        'weekday': {
+            'labels': weekday_order,
+            'values': [weekday_counts.get(day, 0) for day in weekday_order],
+        },
+        'modes': top_entries(mode_counts, limit=8),
+        'operators': top_entries(operator_counts, limit=8),
+        'types': top_entries(type_counts, limit=8),
+        'routes': top_entries(route_counts, limit=8),
+        'starts': top_entries(start_counts, limit=8),
+        'ends': top_entries(end_counts, limit=8),
+        'recent_logs': recent_logs,
+    }
+
 # loging and callback
 @app.route("/login")
 def login():
@@ -129,7 +213,9 @@ def tpvPage():
 def dashboardPage():
     if not session.get("user"):
         return redirect('/login')
-    return render_template('dashboard.html', session=session.get("user"))
+    logs = getLogs(user=session.get('user')['userinfo']['sub'])
+    dashboard_data = build_dashboard_data(logs)
+    return render_template('dashboard.html', session=session.get("user"), dashboard=dashboard_data)
 
 @app.route('/stats')
 def statsPage():
@@ -318,62 +404,83 @@ def addLogAPI():
     internal api for adding logs from the web app
     '''
     try:
-        # auth verification stuff
-        logInfo = request.form
-        if not session.get("user"):
-            return 'user not authenticated', 401
-        
-        # date will be today if not provided
-        if logInfo.get('date') == '':
-            date = datetime.datetime.now().strftime('%Y-%m-%d')
-        else:
-            date = logInfo.get('date')
-        
-        # get type and number of the vehicle
-        if logInfo.get('type') != "":
-            # manual
-            type = logInfo.get('type')
-            number = logInfo.get('number')
-        else:
-            # auto detect
-            if logInfo.get('mode') == 'victrain':
-                number, type = setNumber(logInfo.get('number'))
-            elif logInfo.get('mode') == 'victram':
-                number, type = setNumberTram(logInfo.get('number'))
-                
-        logInfo = dict(logInfo)
-        logInfo['date'] = date
-        logInfo['number'] = number
-        logInfo['type'] = type
-        logInfo['user'] = session.get("user")['userinfo']['sub']
-        logInfo['tags'] = None
-        logInfo['operator'] = getOperator(logInfo.get('mode'), logInfo.get('type'))
-
-        success = logTrip(
-            user=session.get("user")['userinfo']['sub'],
-            mode=logInfo.get('mode'),
-            date=logInfo.get('date'),
-            vehicleNumber=logInfo.get('number'),
-            vehicleType=logInfo.get('type'),
-            start=logInfo.get('start'),
-            end=logInfo.get('end'),
-            line=logInfo.get('line'),
-            operator=logInfo.get('operator'),
-            note=logInfo.get('notes'),
-            tags=logInfo.get('tags'),
-        )
-        
+        logInfo, success, message = handle_log_submission(request.form)
         if not success:
-            message = "Error adding trip to Database, please try again."
+            if message == 'user not authenticated':
+                return message, 401
             print(f'error adding log: {logInfo}')
-        else:
-            message = "Trip logged!"
-        
+            return message, 400
+
         return jsonify(logInfo), 200
     except Exception as e:
         print(f"Error in /api/addLog: {e}")
-        message = "Internal Server Error, please try again later."
-        
+        return "Internal Server Error, please try again later.", 500
+
+
+def handle_log_submission(form_data):
+    # auth verification stuff
+    logInfo = form_data
+    if not session.get("user"):
+        return None, False, 'user not authenticated'
+
+    # date will be today if not provided
+    if logInfo.get('date') == '':
+        date = datetime.datetime.now().strftime('%Y-%m-%d')
+    else:
+        date = logInfo.get('date')
+
+    # get type and number of the vehicle
+    if logInfo.get('type') != "":
+        # manual
+        vehicle_type = logInfo.get('type')
+        number = logInfo.get('number')
+    else:
+        # auto detect
+        if logInfo.get('mode') == 'victrain':
+            number, vehicle_type = setNumber(logInfo.get('number'))
+        elif logInfo.get('mode') == 'victram':
+            number, vehicle_type = setNumberTram(logInfo.get('number'))
+
+    logInfo = dict(logInfo)
+    logInfo['date'] = date
+    logInfo['number'] = number
+    logInfo['type'] = vehicle_type
+    logInfo['user'] = session.get("user")['userinfo']['sub']
+    logInfo['tags'] = None
+    logInfo['operator'] = getOperator(logInfo.get('mode'), logInfo.get('type'))
+
+    success = logTrip(
+        user=session.get("user")['userinfo']['sub'],
+        mode=logInfo.get('mode'),
+        date=logInfo.get('date'),
+        vehicleNumber=logInfo.get('number'),
+        vehicleType=logInfo.get('type'),
+        start=logInfo.get('start'),
+        end=logInfo.get('end'),
+        line=logInfo.get('line'),
+        operator=logInfo.get('operator'),
+        note=logInfo.get('notes'),
+        tags=logInfo.get('tags'),
+    )
+
+    if not success:
+        return logInfo, False, 'Error adding trip to Database, please try again.'
+
+    return logInfo, True, 'Trip logged!'
+
+
+@app.route('/log/submit', methods=['POST'])
+def submitLogPage():
+    try:
+        logInfo, success, message = handle_log_submission(request.form)
+        if not success:
+            return redirect(url_for('logPage', mode=request.form.get('mode'), message=message))
+
+        return redirect(url_for('logPage', mode=logInfo.get('mode'), message=message))
+    except Exception as e:
+        print(f"Error in /log/submit: {e}")
+        return redirect(url_for('logPage', mode=request.form.get('mode'), message='Internal Server Error, please try again later.'))
+
 #Log delete API
 @app.route('/api/deleteLog', methods=['POST'])
 @limiter.limit("10 per minute")

@@ -13,34 +13,122 @@
     <link rel="apple-touch-icon" sizes="144x144" href="{{ url_for('static', filename='icons/logos/apple-icon-144x144.png') }}">
     <link rel="apple-touch-icon" sizes="152x152" href="{{ url_for('static', filename='icons/logos/apple-icon-152x152.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='icons/logos/apple-icon-180x180.png') }}">
-    <link rel="icon" type="image/png" sizes="192x192"  href="{{ url_for('static', filename='icons/logos/android-icon-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icons/logos/android-icon-192x192.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/logos/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="96x96" href="{{ url_for('static', filename='icons/logos/favicon-96x96.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/logos/favicon-16x16.png') }}">
     <link rel="manifest" href="{{ url_for('static', filename='icons/logos/manifest.json') }}">
     <meta name="msapplication-TileImage" content="{{ url_for('static', filename='icons/logos/ms-icon-144x144.png') }}">
-    <!-- apple shitty stuff -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <script>navigator.serviceWorker.register("{{url_for('static', filename='icons/logos/service-worker.js')}}")</script> 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>navigator.serviceWorker.register("{{ url_for('static', filename='icons/logos/service-worker.js') }}")</script>
+    <style>
+        .dashboard-box {
+            width: auto;
+        }
+
+        .dashboard-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .metric-card {
+            flex: 1 1 180px;
+            min-width: 180px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--secondary-color);
+        }
+
+        .metric-card h3 {
+            margin: 0 0 6px;
+            font-size: 1rem;
+        }
+
+        .metric-card p {
+            margin: 0;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 10px;
+        }
+
+        .chart-panel {
+            width: 100%;
+        }
+
+        .chart-panel h3 {
+            margin-top: 0;
+        }
+
+        .chart-container {
+            width: 100%;
+        }
+
+        .chart-container canvas {
+            width: 100% !important;
+            height: 320px !important;
+        }
+
+        .recent-scroll {
+            overflow-x: auto;
+        }
+
+        .recent-table {
+            min-width: 900px;
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
     {% include 'navbar.html' %}
-    <h1>Welcome {{ session.userinfo.name }}!</h1>
-    <div class="box-div">
-        <h2>Log a trip</h2>
-        <h3>Automatic detection</h3>
-        <p>If you are currently on one of these modes, you can input a carriage number, start and end stations and all other info will be found automatically.</p>
-        <div class="button-list">
-            <a href="/log?mode=victrain"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Train.svg') }}" alt="Metro Train" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_RegionalTrain.svg') }}" alt="V/Line Train" class="inline-svg">Train</a>
+
+    <h1>Dashboard</h1>
+
+    <div class="box-div dashboard-box">
+        <h2>Overview</h2>
+        <p>Track your log activity with the same simple layout used across the rest of the site.</p>
+        <div class="dashboard-grid">
+            <div class="metric-card">
+                <h3>Total logs</h3>
+                <p>{{ dashboard.summary.total_logs }}</p>
+            </div>
+            <div class="metric-card">
+                <h3>Top mode</h3>
+                <p>{{ dashboard.summary.top_mode }}</p>
+            </div>
+            <div class="metric-card">
+                <h3>Top route</h3>
+                <p>{{ dashboard.summary.top_route }}</p>
+            </div>
+            <div class="metric-card">
+                <h3>Latest trip</h3>
+                <p>{{ dashboard.summary.latest_trip }}</p>
+            </div>
         </div>
-        <h3><img src='https://upload.wikimedia.org/wikipedia/commons/0/08/Flag_of_Victoria_%28Australia%29.svg' class="inline-svg">Victoria</h3>
+        <div class="button-list">
+            <a href="/view?table=true">View logs</a>
+            <a href="#charts">Jump to charts</a>
+        </div>
+    </div>
+
+    <div class="box-div dashboard-box">
+        <h2>Quick log</h2>
+        <p>Use the existing route shortcuts to add a trip.</p>
+        <h3><img src='https://upload.wikimedia.org/wikipedia/commons/0/08/Flag_of_Victoria_%28Australia%29.svg' class="inline-svg"> Victoria</h3>
         <div class="button-list">
             <a href="/log?mode=victrain"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Train.svg') }}" alt="Metro Train" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_RegionalTrain.svg') }}" alt="V/Line Train" class="inline-svg">Train</a>
             <a href="/log?mode=victram"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Tram.svg') }}" alt="Tram" class="inline-svg">Tram</a>
             <a href="/log?mode=vicbus"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Bus.svg') }}" alt="Bus" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Coach.svg') }}" alt="Coach" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_SkyBus.svg') }}" alt="SkyBus" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_FlexiRide.svg') }}" alt="FlexiRide" class="inline-svg">Bus</a>
         </div>
-        <h3><img src='https://upload.wikimedia.org/wikipedia/commons/0/00/Flag_of_New_South_Wales.svg' class="inline-svg">New South Wales</h3>
+        <h3><img src='https://upload.wikimedia.org/wikipedia/commons/0/00/Flag_of_New_South_Wales.svg' class="inline-svg"> New South Wales</h3>
         <div class="button-list">
             <a href="/log?mode=nswtrain"><img src="{{ url_for('static', filename='icons/tFnsw/Train_Mode_Colour_Background_400x400.png') }}" alt="Train" class="inline-svg"><img src="{{ url_for('static', filename='icons/tFnsw/Metro_Mode_Colour_Background_400x400.png') }}" alt="Metro" class="inline-svg">Train</a>
             <a href="/log?mode=nswferry"><img src="{{ url_for('static', filename='icons/tFnsw/Ferry_Mode_Colour_Background_400x400.png') }}" alt="Ferry" class="inline-svg">Ferry</a>
@@ -63,24 +151,189 @@
             <a href="/log?mode=actlightrail"><img src="{{ url_for('static', filename='icons/ACT/Canberra_Metro_icon.svg') }}" alt="Light Rail" class="inline-svg">Light Rail</a>
             <a href="/log?mode=actbus"><img src="{{ url_for('static', filename='icons/ACT/Canberra_Bus_icon.svg') }}" alt="Bus" class="inline-svg">Bus</a>
         </div>
-        <h2>Coming soon</h2>
-        <h3>Queensland</h3>
-        <div class="button-list">
-            <a style="cursor: not-allowed;">Train</a>
-            <a style="cursor: not-allowed;">Bus</a>
-            <a style="cursor: not-allowed;">Ferry</a>
-            <a style="cursor: not-allowed;">Tram</a>
-        </div>
-        <h3>Tasmania</h3>
-        <div class="button-list">
-            <a style="cursor: not-allowed;">Bus</a>
-            <a style="cursor: not-allowed;">Ferry</a>
-        </div>
-        <h3>Northern Territory</h3>
-        <div class="button-list">
-            <a style="cursor: not-allowed;">Bus</a>
+    </div>
+
+    <div class="box-div dashboard-box" id="charts">
+        <h2>Charts</h2>
+        <div class="chart-grid">
+            <div class="chart-panel box-div dashboard-box">
+                <h3>Trips by month</h3>
+                <div class="chart-container"><canvas id="monthlyChart"></canvas></div>
+            </div>
+            <div class="chart-panel box-div dashboard-box">
+                <h3>Trips by mode</h3>
+                <div class="chart-container"><canvas id="modeChart"></canvas></div>
+            </div>
+            <div class="chart-panel box-div dashboard-box">
+                <h3>Trips by operator</h3>
+                <div class="chart-container"><canvas id="operatorChart"></canvas></div>
+            </div>
+            <div class="chart-panel box-div dashboard-box">
+                <h3>Trips by route</h3>
+                <div class="chart-container"><canvas id="routeChart"></canvas></div>
+            </div>
+            <div class="chart-panel box-div dashboard-box">
+                <h3>Vehicle types</h3>
+                <div class="chart-container"><canvas id="typeChart"></canvas></div>
+            </div>
+            <div class="chart-panel box-div dashboard-box">
+                <h3>Trips by weekday</h3>
+                <div class="chart-container"><canvas id="weekdayChart"></canvas></div>
+            </div>
+            <div class="chart-panel box-div dashboard-box">
+                <h3>Start stations</h3>
+                <div class="chart-container"><canvas id="startChart"></canvas></div>
+            </div>
+            <div class="chart-panel box-div dashboard-box">
+                <h3>End stations</h3>
+                <div class="chart-container"><canvas id="endChart"></canvas></div>
+            </div>
         </div>
     </div>
+
+    <div class="box-div dashboard-box">
+        <h2>Recent trips</h2>
+        <div class="recent-scroll">
+            <table class="recent-table">
+                <tr>
+                    <th>Date</th>
+                    <th>Mode</th>
+                    <th>Operator</th>
+                    <th>Route</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Vehicle</th>
+                    <th>Notes</th>
+                </tr>
+                {% for log in dashboard.recent_logs %}
+                <tr>
+                    <td><a href="/log/{{ log.id }}">{{ log.date }}</a></td>
+                    <td>{{ log.mode or 'Unknown' }}</td>
+                    <td>{{ log.operator or 'Unknown' }}</td>
+                    <td>{{ log.route or 'Unassigned' }}</td>
+                    <td>{{ log.start or 'Unknown' }}</td>
+                    <td>{{ log.end or 'Unknown' }}</td>
+                    <td>{{ log.number or 'Unknown' }} {{ log.type or '' }}</td>
+                    <td>{{ log.notes or 'No notes' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8">No logs yet.</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
     {% include 'footer.html' %}
+
+    <script>
+        const dashboardData = {{ dashboard | tojson }};
+
+        const chartColours = {
+            line: '#00518b',
+            rail: '#753f98',
+            bus: '#6b6b6b',
+            ferry: '#0e8489',
+            warm: '#ed6601'
+        };
+
+        function makeChart(canvasId, type, labels, values, options = {}) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type,
+                data: {
+                    labels,
+                    datasets: [{
+                        label: options.label || 'Count',
+                        data: values,
+                        backgroundColor: options.backgroundColor || '#6b6b6b',
+                        borderColor: options.borderColor || '#6b6b6b',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        maxBarThickness: 48,
+                        fill: options.fill ?? false,
+                        tension: 0.25,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: options.indexAxis || 'x',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#2e2e2e',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: 'rgba(255,255,255,0.08)',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: ctx => `${ctx.label}: ${ctx.raw}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#cfcfcf' },
+                            grid: { color: 'transparent' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#cfcfcf', stepSize: 1 },
+                            grid: { color: 'rgba(255,255,255,0.04)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        makeChart('monthlyChart', 'line', dashboardData.monthly.labels, dashboardData.monthly.values, {
+            label: 'Trips',
+            backgroundColor: 'rgba(0, 81, 139, 0.18)',
+            borderColor: chartColours.line,
+            fill: true
+        });
+        makeChart('modeChart', 'bar', dashboardData.modes.labels, dashboardData.modes.values, {
+            label: 'Trips',
+            backgroundColor: chartColours.rail,
+            borderColor: chartColours.rail
+        });
+        makeChart('operatorChart', 'bar', dashboardData.operators.labels, dashboardData.operators.values, {
+            label: 'Trips',
+            backgroundColor: chartColours.ferry,
+            borderColor: chartColours.ferry,
+            indexAxis: 'y'
+        });
+        makeChart('routeChart', 'bar', dashboardData.routes.labels, dashboardData.routes.values, {
+            label: 'Trips',
+            backgroundColor: chartColours.warm,
+            borderColor: chartColours.warm,
+            indexAxis: 'y'
+        });
+        makeChart('typeChart', 'bar', dashboardData.types.labels, dashboardData.types.values, {
+            label: 'Trips',
+            backgroundColor: chartColours.bus,
+            borderColor: chartColours.bus,
+            indexAxis: 'y'
+        });
+        makeChart('weekdayChart', 'bar', dashboardData.weekday.labels, dashboardData.weekday.values, {
+            label: 'Trips',
+            backgroundColor: chartColours.line,
+            borderColor: chartColours.line
+        });
+        makeChart('startChart', 'bar', dashboardData.starts.labels, dashboardData.starts.values, {
+            label: 'Trips',
+            backgroundColor: chartColours.rail,
+            borderColor: chartColours.rail,
+            indexAxis: 'y'
+        });
+        makeChart('endChart', 'bar', dashboardData.ends.labels, dashboardData.ends.values, {
+            label: 'Trips',
+            backgroundColor: chartColours.ferry,
+            borderColor: chartColours.ferry,
+            indexAxis: 'y'
+        });
+    </script>
 </body>
 </html>

@@ -21,7 +21,7 @@
     {% endif %}
     <div class="box-div">
         <div class="log-entry">
-            <form action="/api/addLog" method="post">
+            <form action="/log/submit" method="post">
                 <input type="hidden" id="mode" name="mode" value="{{mode}}">
                 <label for="Line">Line:</label>
                 {% if lineOptions|length > 0 %}
