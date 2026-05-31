@@ -208,12 +208,12 @@
                 {% for log in dashboard.recent_logs %}
                 <tr>
                     <td><a href="/log/{{ log.id }}">{{ log.date }}</a></td>
-                    <td>{{ log.mode or 'Unknown' }}</td>
+                    <td>{{ log.mode_display or 'Unknown' }}</td>
                     <td>{{ log.operator or 'Unknown' }}</td>
                     <td>{{ log.route or 'Unassigned' }}</td>
                     <td>{{ log.start or 'Unknown' }}</td>
                     <td>{{ log.end or 'Unknown' }}</td>
-                    <td>{{ log.number or 'Unknown' }} {{ log.type or '' }}</td>
+                    <td>{{ log.type or '' }} {{ log.number or 'Unknown' }}</td>
                     <td>{{ log.notes or 'No notes' }}</td>
                 </tr>
                 {% else %}

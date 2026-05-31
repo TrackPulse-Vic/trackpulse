@@ -26,7 +26,7 @@
                 <label for="filter">Filter by mode:</label>
                 <select name="mode" id="filter">
                 {% for mode in modes %}
-                    <option value="{{ mode }}" {% if mode == request.args.get('mode', selected_mode) %}selected{% endif %}>{{ mode }}</option>
+                    <option value="{{ mode }}" {% if mode == request.args.get('mode', selected_mode) %}selected{% endif %}>{{ display_mode_name(mode) }}</option>
                 {% endfor %}
                 </select>
                 <input type="hidden" name="table" value="true">

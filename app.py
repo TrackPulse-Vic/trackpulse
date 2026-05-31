@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 from collections import Counter
 from urllib.parse import quote_plus, urlencode
 import dotenv
@@ -82,6 +83,95 @@ lineColors = {
 global MODES
 MODES = ['All', 'victrain', 'victram', 'vicbus', 'nswtrain', 'nswbus', 'nswferry', 'nswlightrail', 'satrain', 'satram', 'watrain', 'wabus', 'actlightrail', 'actbus']
 
+TRANSPORT_VIC_STOPS_URL = 'https://opendata.transport.vic.gov.au/dataset/6d36dfd9-8693-4552-8a03-05eb29a391fd/resource/a2cba0b0-bddc-4b87-b495-2b6b7013af6e/download/public_transport_stops.geojson'
+
+MODE_STOP_GROUPS = {
+    'victram': {'METRO TRAM'},
+    'vicbus': {'METRO BUS', 'REGIONAL BUS', 'SKYBUS'},
+}
+
+MODE_DISPLAY_NAMES = {
+    'All': 'All',
+    'victrain': 'Victorian Trains',
+    'victram': 'Victorian Trams',
+    'vicbus': 'Victorian Buses',
+    'nswtrain': 'New South Wales Trains',
+    'nswbus': 'New South Wales Buses',
+    'nswferry': 'New South Wales Ferries',
+    'nswlightrail': 'New South Wales Light Rail',
+    'satrain': 'South Australian Trains',
+    'satram': 'South Australian Trams',
+    'sabus': 'South Australian Buses',
+    'watrain': 'Western Australian Trains',
+    'wabus': 'Western Australian Buses',
+    'actlightrail': 'ACT Light Rail',
+    'actbus': 'ACT Buses',
+}
+
+
+def display_mode_name(mode):
+    if not mode:
+        return 'Unknown'
+    return MODE_DISPLAY_NAMES.get(mode, mode.replace('_', ' ').title())
+
+
+def normalize_stop_name(stop_name):
+    if not stop_name:
+        return None
+
+    cleaned_name = str(stop_name).strip()
+    cleaned_name = re.sub(r'\s*(?:Railway Station|Station)\s*$', '', cleaned_name, flags=re.IGNORECASE)
+    cleaned_name = re.sub(r'\s+', ' ', cleaned_name).strip()
+    return cleaned_name or None
+
+
+def load_geojson_stops():
+    try:
+        response = requests.get(TRANSPORT_VIC_STOPS_URL, timeout=30)
+        response.raise_for_status()
+        geojson = response.json()
+    except requests.RequestException as exc:
+        print(f'Error downloading transport stops geojson: {exc}')
+        return {}
+
+    stops_by_mode = {}
+    for feature in geojson.get('features', []):
+        properties = feature.get('properties', {})
+        stop_name = normalize_stop_name(properties.get('STOP_NAME'))
+        geo_mode = properties.get('MODE')
+        if not stop_name or not geo_mode:
+            continue
+
+        stops_by_mode.setdefault(geo_mode, set()).add(stop_name.strip())
+
+    return {mode: sorted(stop_names) for mode, stop_names in stops_by_mode.items()}
+
+
+GEOJSON_STOPS_BY_MODE = load_geojson_stops()
+
+
+def load_station_names_from_file(mode):
+    try:
+        with open(f'datalists/stations/{mode}.txt', 'r', encoding='utf-8') as file:
+            return sorted({normalized_name for line in file if (normalized_name := normalize_stop_name(line))})
+    except FileNotFoundError:
+        return []
+
+
+def get_stop_names_for_mode(mode):
+    if not mode:
+        return []
+
+    geo_modes = MODE_STOP_GROUPS.get(mode, set())
+    stop_names = []
+    for geo_mode in geo_modes:
+        stop_names.extend(GEOJSON_STOPS_BY_MODE.get(geo_mode, []))
+
+    if stop_names:
+        return sorted(set(stop_names))
+
+    return load_station_names_from_file(mode)
+
 
 def build_dashboard_data(logs):
     mode_counts = Counter()
@@ -94,7 +184,7 @@ def build_dashboard_data(logs):
     weekday_counts = Counter()
 
     for log in logs:
-        mode_counts[log[2] or 'Unknown'] += 1
+        mode_counts[display_mode_name(log[2])] += 1
         operator_counts[log[4] or 'Unknown'] += 1
         type_counts[log[6] or 'Unknown'] += 1
         route_counts[log[7] or 'Unassigned'] += 1
@@ -120,6 +210,7 @@ def build_dashboard_data(logs):
         recent_logs.append({
             'id': log[0],
             'mode': log[2],
+            'mode_display': display_mode_name(log[2]),
             'date': log[3],
             'operator': log[4],
             'number': log[5],
@@ -164,6 +255,13 @@ def build_dashboard_data(logs):
         'starts': top_entries(start_counts, limit=8),
         'ends': top_entries(end_counts, limit=8),
         'recent_logs': recent_logs,
+    }
+
+
+@app.context_processor
+def inject_mode_helpers():
+    return {
+        'display_mode_name': display_mode_name,
     }
 
 # loging and callback
@@ -285,23 +383,7 @@ def logPage():
         return redirect('/login')
     mode = request.args.get('mode')
     message = request.args.get('message', None)
-    prettyMode = {
-        'victrain': 'Victorian Train',
-        'victram': 'Melbourne Tram',
-        'vicbus': 'Victorian Bus',
-        'nswtrain': 'New South Wales Train',
-        'nswbus': 'New South Wales Bus',
-        'nswferry': 'New South Wales Ferry',
-        'nswlightrail': 'New South Wales Light Rail',
-        'satrain': 'South Australian Train',
-        'satram': 'South Australian Tram',
-        "sabus": 'South Australian Bus',
-        'watrain': 'Western Australian Train',
-        'wabus': 'Western Australian Bus',
-        'actlightrail': 'ACT Light Rail',
-        'actbus': 'ACT Bus'
-    }
-    
+
     automodes = ['victrain', 'victram']
     
     lineOptions = {
@@ -342,16 +424,17 @@ def logPage():
 
     }
     
-    # stations list
-    try:
-        with open(f'datalists/stations/{mode}.txt', 'r') as file:
-            stations = file.readlines()
-    except FileNotFoundError:
-        stations = []
+    stations = get_stop_names_for_mode(mode)
 
-    displayName = prettyMode.get(mode, None)
+    displayName = display_mode_name(mode)
     categorizedLines = lineOptions.get(mode, {})
     return render_template('log.html', mode=mode, displayName=displayName, lineOptions=categorizedLines, stations=stations, message=message, automodes=automodes)
+
+
+@app.route('/api/stops')
+def apiStops():
+    mode = request.args.get('mode', None)
+    return jsonify(get_stop_names_for_mode(mode))
 
 # view log page
 @app.route('/view')

@@ -55,7 +55,7 @@
                 <input type="text" id="start" name="start" list="stations" required><br><br>
                 <datalist id="stations">
                     {% for station in stations %}
-                        <option value="{{ station.strip() }}">
+                        <option value="{{ station }}">
                     {% endfor %}
                 </datalist>
                 
@@ -102,5 +102,45 @@
             </form>
         </div>
     </div>
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modeInput = document.getElementById('mode');
+            const stationsList = document.getElementById('stations');
+
+            if (!modeInput || !stationsList) {
+                return;
+            }
+
+            const renderStations = (stations) => {
+                stationsList.innerHTML = '';
+                stations.forEach((station) => {
+                    const option = document.createElement('option');
+                    option.value = station;
+                    stationsList.appendChild(option);
+                });
+            };
+
+            const loadStations = async () => {
+                const mode = modeInput.value;
+                if (!mode) {
+                    renderStations([]);
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`{{ url_for('apiStops') }}?mode=${encodeURIComponent(mode)}`);
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    const stations = await response.json();
+                    renderStations(stations);
+                } catch (error) {
+                    console.error('Failed to load stops for mode:', error);
+                }
+            };
+
+            loadStations();
+        });
+    </script>
 </body>

@@ -21,7 +21,7 @@
             <label for="mode">Select mode:</label>
             <select id="mode" name="mode" required>
                 {% for m in modes %}
-                    <option value="{{ m }}" {% if m == selectedMode %}selected{% endif %}>{{ m }}</option>
+                    <option value="{{ m }}" {% if m == selectedMode %}selected{% endif %}>{{ display_mode_name(m) }}</option>
                 {% endfor %}
             </select><br><br>
             <input type="hidden" name="truncate" value="10">
