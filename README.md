@@ -1,7 +1,5 @@
 # tpv-web-logger
-Log your trips on Melbourne's public transport
-The web logger builds upon the TrackPulse Vic Discord bot's trip logging features in a more efficient and easy to use way.
-When released, you will be able to use it at this address: https://trackpulse.xm9g.net
+Log your trips on Australia's public transport
 
 ## Screenshots
 
