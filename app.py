@@ -472,7 +472,7 @@ def singleLogPage(id):
         return "error loading log", 500
     if not log or len(log) == 0:
         return render_template('custommessage.html', message="You do not have permission to view this trip!"), 404
-    return render_template('singlelog.html', log=log, lineColors=lineColors)
+    return render_template('singleLog.html', log=log, lineColors=lineColors)
 
 # vehicle page
 @app.route('/stats/<mode>/<vehicle>')
