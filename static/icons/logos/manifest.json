@@ -10,7 +10,7 @@
   "lang": "en-US",
   "name": "Trackpulse",
   "short_name": "Trackpulse",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "description": "Log trips on public transport in Victoria and Australia",
   "id": "/",
   "icons": [
@@ -55,17 +55,38 @@
     {
       "name": "Log Victorian Train",
       "url": "https://trackpulse.xm9g.net/log?mode=victrain",
-      "description": "Log Victorian Train"
+      "description": "Log Victorian Train",
+      "icons": [
+      {
+        "src": "/static/icons/shortcuts/vtrain.png",
+        "sizes": "96x96",
+        "type": "image/png"
+      }
+    ]
     },
     {
       "name": "Log Melbourne Tram",
       "url": "https://trackpulse.xm9g.net/log?mode=victram",
-      "description": "Log Melbourne Tram"
+      "description": "Log Melbourne Tram",
+      "icons": [
+      {
+        "src": "/static/icons/shortcuts/vtram.png",
+        "sizes": "96x96",
+        "type": "image/png"
+      }
+    ]
     },
     {
       "name": "Log Victorian Bus",
       "url": "https://trackpulse.xm9g.net/log?mode=vicbus",
-      "description": "Log Victorian Bus"
+      "description": "Log Victorian Bus",
+      "icons": [
+      {
+        "src": "/static/icons/shortcuts/vbus.png",
+        "sizes": "96x96",
+        "type": "image/png"
+      }
+    ]
     },
     {
       "name": "Log NSW Train",
