@@ -106,33 +106,6 @@
     <h1>Dashboard</h1>
 
     <div class="box-div dashboard-box">
-        <h2>Overview</h2>
-        <p>Track your log activity with the same simple layout used across the rest of the site.</p>
-        <div class="dashboard-grid">
-            <div class="metric-card">
-                <h3>Total logs</h3>
-                <p>{{ dashboard.summary.total_logs }}</p>
-            </div>
-            <div class="metric-card">
-                <h3>Top mode</h3>
-                <p>{{ dashboard.summary.top_mode }}</p>
-            </div>
-            <div class="metric-card">
-                <h3>Top line</h3>
-                <p>{{ dashboard.summary.top_route }}</p>
-            </div>
-            <div class="metric-card">
-                <h3>Latest trip</h3>
-                <p>{{ dashboard.summary.latest_trip }}</p>
-            </div>
-        </div>
-        <div class="button-list">
-            <a href="/view?table=true">View logs</a>
-            <a href="#charts">Jump to more stats</a>
-        </div>
-    </div>
-
-    <div class="box-div dashboard-box">
         <h2>Quick log</h2>
         <h3><img src='https://upload.wikimedia.org/wikipedia/commons/0/08/Flag_of_Victoria_%28Australia%29.svg' class="inline-svg"> Victoria</h3>
         <div class="button-list">
@@ -164,6 +137,32 @@
             <a href="/log?mode=actbus"><img src="{{ url_for('static', filename='icons/ACT/Canberra_Bus_icon.svg') }}" alt="Bus" class="inline-svg">Bus</a>
         </div>
     </div>
+    <div class="box-div dashboard-box">
+        <h2>Overview</h2>
+        <div class="dashboard-grid">
+            <div class="metric-card">
+                <h3>Total logs</h3>
+                <p>{{ dashboard.summary.total_logs }}</p>
+            </div>
+            <div class="metric-card">
+                <h3>Top mode</h3>
+                <p>{{ dashboard.summary.top_mode }}</p>
+            </div>
+            <div class="metric-card">
+                <h3>Top line</h3>
+                <p>{{ dashboard.summary.top_route }}</p>
+            </div>
+            <div class="metric-card">
+                <h3>Latest trip</h3>
+                <p>{{ dashboard.summary.latest_trip }}</p>
+            </div>
+        </div>
+        <div class="button-list">
+            <a href="/view?table=true">View logs</a>
+            <a href="#charts">Jump to more stats</a>
+        </div>
+    </div>
+
 
     <div class="box-div dashboard-box" id="charts">
         <h2>Stats</h2>
