@@ -25,7 +25,9 @@
     <script>navigator.serviceWorker.register("{{ url_for('static', filename='icons/logos/service-worker.js') }}")</script>
     <style>
         .dashboard-box {
-            width: auto;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         .dashboard-grid {
@@ -55,12 +57,17 @@
 
         .chart-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 10px;
+            align-items: stretch;
         }
 
         .chart-panel {
             width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
         }
 
         .chart-panel h3 {
@@ -69,6 +76,8 @@
 
         .chart-container {
             width: 100%;
+            min-width: 0;
+            position: relative;
         }
 
         .chart-container canvas {
@@ -84,6 +93,10 @@
             min-width: 900px;
             width: 100%;
             margin-top: 10px;
+        }
+        .recent-table a {
+            color:inherit;
+            text-decoration:underline;
         }
     </style>
 </head>
@@ -105,7 +118,7 @@
                 <p>{{ dashboard.summary.top_mode }}</p>
             </div>
             <div class="metric-card">
-                <h3>Top route</h3>
+                <h3>Top line</h3>
                 <p>{{ dashboard.summary.top_route }}</p>
             </div>
             <div class="metric-card">
@@ -115,13 +128,12 @@
         </div>
         <div class="button-list">
             <a href="/view?table=true">View logs</a>
-            <a href="#charts">Jump to charts</a>
+            <a href="#charts">Jump to more stats</a>
         </div>
     </div>
 
     <div class="box-div dashboard-box">
         <h2>Quick log</h2>
-        <p>Use the existing route shortcuts to add a trip.</p>
         <h3><img src='https://upload.wikimedia.org/wikipedia/commons/0/08/Flag_of_Victoria_%28Australia%29.svg' class="inline-svg"> Victoria</h3>
         <div class="button-list">
             <a href="/log?mode=victrain"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_Train.svg') }}" alt="Metro Train" class="inline-svg"><img src="{{ url_for('static', filename='icons/transportVic/PICTO_MODE_RegionalTrain.svg') }}" alt="V/Line Train" class="inline-svg">Train</a>
@@ -154,7 +166,7 @@
     </div>
 
     <div class="box-div dashboard-box" id="charts">
-        <h2>Charts</h2>
+        <h2>Stats</h2>
         <div class="chart-grid">
             <div class="chart-panel box-div dashboard-box">
                 <h3>Trips by month</h3>
@@ -169,7 +181,7 @@
                 <div class="chart-container"><canvas id="operatorChart"></canvas></div>
             </div>
             <div class="chart-panel box-div dashboard-box">
-                <h3>Trips by route</h3>
+                <h3>Trips by line</h3>
                 <div class="chart-container"><canvas id="routeChart"></canvas></div>
             </div>
             <div class="chart-panel box-div dashboard-box">
@@ -199,7 +211,7 @@
                     <th>Date</th>
                     <th>Mode</th>
                     <th>Operator</th>
-                    <th>Route</th>
+                    <th>Line</th>
                     <th>Start</th>
                     <th>End</th>
                     <th>Vehicle</th>
@@ -214,7 +226,7 @@
                     <td>{{ log.start or 'Unknown' }}</td>
                     <td>{{ log.end or 'Unknown' }}</td>
                     <td>{{ log.type or '' }} {{ log.number or 'Unknown' }}</td>
-                    <td>{{ log.notes or 'No notes' }}</td>
+                    <td>{{ log.notes or '' }}</td>
                 </tr>
                 {% else %}
                 <tr>
@@ -231,11 +243,11 @@
         const dashboardData = {{ dashboard | tojson }};
 
         const chartColours = {
-            line: '#00518b',
-            rail: '#753f98',
-            bus: '#6b6b6b',
-            ferry: '#0e8489',
-            warm: '#ed6601'
+            line: '#ffffff',
+            rail: '#ffffff',
+            bus: '#ffffff',
+            ferry: '#ffffff',
+            warm: '#ffffff'
         };
 
         function makeChart(canvasId, type, labels, values, options = {}) {
