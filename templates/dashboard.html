@@ -241,16 +241,50 @@
     <script>
         const dashboardData = {{ dashboard | tojson }};
 
-        const chartColours = {
-            line: '#ffffff',
-            rail: '#ffffff',
-            bus: '#ffffff',
-            ferry: '#ffffff',
-            warm: '#ffffff'
-        };
+        let dashboardCharts = [];
+
+        function getThemeMode() {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        function getChartTheme() {
+            return getThemeMode() === 'dark' ? {
+                line: '#3492eb',
+                rail: '#224e8e',
+                bus: '#ff8200',
+                ferry: '#5ab031',
+                warm: '#fb7185',
+                text: '#f3f4f6',
+                mutedText: '#cbd5e1',
+                grid: 'rgba(255, 255, 255, 0.08)',
+                tooltipBackground: '#111827',
+                tooltipBorder: 'rgba(255, 255, 255, 0.12)',
+                monthlyFill: 'rgba(147, 197, 253, 0.22)',
+                defaultBarFill: 'rgba(255, 255, 255, 0.15)'
+            } : {
+                line: '#1d4ed8',
+                rail: '#0f766e',
+                bus: '#b45309',
+                ferry: '#7c3aed',
+                warm: '#be123c',
+                text: '#111827',
+                mutedText: '#374151',
+                grid: 'rgba(17, 24, 39, 0.08)',
+                tooltipBackground: '#ffffff',
+                tooltipBorder: 'rgba(17, 24, 39, 0.12)',
+                monthlyFill: 'rgba(29, 78, 216, 0.18)',
+                defaultBarFill: 'rgba(17, 24, 39, 0.12)'
+            };
+        }
+
+        function destroyCharts() {
+            dashboardCharts.forEach(chart => chart.destroy());
+            dashboardCharts = [];
+        }
 
         function makeChart(canvasId, type, labels, values, options = {}) {
             const ctx = document.getElementById(canvasId).getContext('2d');
+            const theme = getChartTheme();
             return new Chart(ctx, {
                 type,
                 data: {
@@ -258,8 +292,8 @@
                     datasets: [{
                         label: options.label || 'Count',
                         data: values,
-                        backgroundColor: options.backgroundColor || '#6b6b6b',
-                        borderColor: options.borderColor || '#6b6b6b',
+                        backgroundColor: options.backgroundColor || theme.defaultBarFill,
+                        borderColor: options.borderColor || theme.line,
                         borderWidth: 1,
                         borderRadius: 6,
                         maxBarThickness: 48,
@@ -274,10 +308,10 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: '#2e2e2e',
-                            titleColor: '#ffffff',
-                            bodyColor: '#ffffff',
-                            borderColor: 'rgba(255,255,255,0.08)',
+                            backgroundColor: theme.tooltipBackground,
+                            titleColor: theme.text,
+                            bodyColor: theme.text,
+                            borderColor: theme.tooltipBorder,
                             borderWidth: 1,
                             callbacks: {
                                 label: ctx => `${ctx.label}: ${ctx.raw}`
@@ -286,65 +320,81 @@
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#cfcfcf' },
+                            ticks: { color: theme.mutedText },
                             grid: { color: 'transparent' }
                         },
                         y: {
                             beginAtZero: true,
-                            ticks: { color: '#cfcfcf', stepSize: 1 },
-                            grid: { color: 'rgba(255,255,255,0.04)' }
+                            ticks: { color: theme.mutedText, stepSize: 1 },
+                            grid: { color: theme.grid }
                         }
                     }
                 }
             });
         }
 
-        makeChart('monthlyChart', 'line', dashboardData.monthly.labels, dashboardData.monthly.values, {
-            label: 'Trips',
-            backgroundColor: 'rgba(0, 81, 139, 0.18)',
-            borderColor: chartColours.line,
-            fill: true
-        });
-        makeChart('modeChart', 'bar', dashboardData.modes.labels, dashboardData.modes.values, {
-            label: 'Trips',
-            backgroundColor: chartColours.rail,
-            borderColor: chartColours.rail
-        });
-        makeChart('operatorChart', 'bar', dashboardData.operators.labels, dashboardData.operators.values, {
-            label: 'Trips',
-            backgroundColor: chartColours.ferry,
-            borderColor: chartColours.ferry,
-            indexAxis: 'y'
-        });
-        makeChart('routeChart', 'bar', dashboardData.routes.labels, dashboardData.routes.values, {
-            label: 'Trips',
-            backgroundColor: chartColours.warm,
-            borderColor: chartColours.warm,
-            indexAxis: 'y'
-        });
-        makeChart('typeChart', 'bar', dashboardData.types.labels, dashboardData.types.values, {
-            label: 'Trips',
-            backgroundColor: chartColours.bus,
-            borderColor: chartColours.bus,
-            indexAxis: 'y'
-        });
-        makeChart('weekdayChart', 'bar', dashboardData.weekday.labels, dashboardData.weekday.values, {
-            label: 'Trips',
-            backgroundColor: chartColours.line,
-            borderColor: chartColours.line
-        });
-        makeChart('startChart', 'bar', dashboardData.starts.labels, dashboardData.starts.values, {
-            label: 'Trips',
-            backgroundColor: chartColours.rail,
-            borderColor: chartColours.rail,
-            indexAxis: 'y'
-        });
-        makeChart('endChart', 'bar', dashboardData.ends.labels, dashboardData.ends.values, {
-            label: 'Trips',
-            backgroundColor: chartColours.ferry,
-            borderColor: chartColours.ferry,
-            indexAxis: 'y'
-        });
+        function renderDashboardCharts() {
+            destroyCharts();
+            const theme = getChartTheme();
+
+            dashboardCharts.push(makeChart('monthlyChart', 'line', dashboardData.monthly.labels, dashboardData.monthly.values, {
+                label: 'Trips',
+                backgroundColor: theme.monthlyFill,
+                borderColor: theme.line,
+                fill: true
+            }));
+            dashboardCharts.push(makeChart('modeChart', 'bar', dashboardData.modes.labels, dashboardData.modes.values, {
+                label: 'Trips',
+                backgroundColor: theme.rail,
+                borderColor: theme.rail
+            }));
+            dashboardCharts.push(makeChart('operatorChart', 'bar', dashboardData.operators.labels, dashboardData.operators.values, {
+                label: 'Trips',
+                backgroundColor: theme.ferry,
+                borderColor: theme.ferry,
+                indexAxis: 'y'
+            }));
+            dashboardCharts.push(makeChart('routeChart', 'bar', dashboardData.routes.labels, dashboardData.routes.values, {
+                label: 'Trips',
+                backgroundColor: theme.warm,
+                borderColor: theme.warm,
+                indexAxis: 'y'
+            }));
+            dashboardCharts.push(makeChart('typeChart', 'bar', dashboardData.types.labels, dashboardData.types.values, {
+                label: 'Trips',
+                backgroundColor: theme.bus,
+                borderColor: theme.bus,
+                indexAxis: 'y'
+            }));
+            dashboardCharts.push(makeChart('weekdayChart', 'bar', dashboardData.weekday.labels, dashboardData.weekday.values, {
+                label: 'Trips',
+                backgroundColor: theme.line,
+                borderColor: theme.line
+            }));
+            dashboardCharts.push(makeChart('startChart', 'bar', dashboardData.starts.labels, dashboardData.starts.values, {
+                label: 'Trips',
+                backgroundColor: theme.rail,
+                borderColor: theme.rail,
+                indexAxis: 'y'
+            }));
+            dashboardCharts.push(makeChart('endChart', 'bar', dashboardData.ends.labels, dashboardData.ends.values, {
+                label: 'Trips',
+                backgroundColor: theme.ferry,
+                borderColor: theme.ferry,
+                indexAxis: 'y'
+            }));
+        }
+
+        renderDashboardCharts();
+
+        const themeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const themeChangeHandler = () => renderDashboardCharts();
+
+        if (typeof themeQuery.addEventListener === 'function') {
+            themeQuery.addEventListener('change', themeChangeHandler);
+        } else if (typeof themeQuery.addListener === 'function') {
+            themeQuery.addListener(themeChangeHandler);
+        }
     </script>
 </body>
 </html>

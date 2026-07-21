@@ -56,15 +56,17 @@
                 <datalist id="stations">
                     {% for station in stations %}
                         <option value="{{ station }}">
-                    {% endfor %}
-                </datalist>
-                
+                            {% endfor %}
+                        </datalist>
+                        
                 <label for="end">End:</label>
                 <input type="text" id="end" name="end" list="stations" required><br><br>
                 
                 <label for="notes">Notes:</label>
                 <textarea id="notes" name="notes" rows="1" cols="1"></textarea><br><br>
-
+                
+                <input type="submit" value="Log Trip">
+                
                 <div class="overrides">
                     <p>These options will be automatically filled based on your selections but you can override them if needed:</p>
                     <label for="date">Date:</label>
@@ -98,7 +100,6 @@
                     {% endif %}
                 </div>
                 
-                <input type="submit" value="Log Trip">
             </form>
         </div>
     </div>
