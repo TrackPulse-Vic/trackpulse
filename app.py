@@ -18,7 +18,7 @@ from scripts.converter import convertLogs
 from scripts.log import getOperator, logTrip
 from scripts.map.main import getVehiclePositions
 from scripts.reader import deleteLog, getLogs
-from scripts.trainset import setNumber, setNumberTram
+from scripts.trainset import setNumber, setNumberTram, trainInfo
 from scripts.userDBmanager import addUser
 from scripts.vrpApi import getTrainImage
 
@@ -477,8 +477,9 @@ def singleLogPage(id):
 # vehicle page
 @app.route('/stats/<mode>/<vehicle>')
 def trainPage(mode, vehicle):
+    traininfo = trainInfo(vehicle)
     photoURL, photographer = getTrainImage(vehicle.split('-')[0], thumbnail=False)
-    return render_template('trainpage.html',mode=mode, vehicle=vehicle, photoURL=photoURL, photographer=photographer)
+    return render_template('trainpage.html',mode=mode, vehicle=vehicle, photoURL=photoURL, photographer=photographer, trainInfo=traininfo)
 
 # log add api
 @app.route('/api/addLog', methods=['POST'])

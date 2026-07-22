@@ -1,0 +1,19 @@
+.train-photo {
+    width:500px;
+    border-radius: 10px;
+}
+
+@media (max-width: 600px) {
+    .train-photo{
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    table {
+        max-width: 100%;
+        table-layout: fixed;
+        display: block; /* allow horizontal scrolling on small screens */
+        overflow-x: auto;
+        word-break: break-word;
+    }
+}

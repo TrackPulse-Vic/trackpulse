@@ -4,6 +4,7 @@
         <title>{{vehicle}} - TrackPulse</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/viewer.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/trainpage.css') }}">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta charset="utf-8">
         <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icons/logos/favicon.ico') }}">
@@ -12,10 +13,12 @@
     <body>
         {% include 'navbar.html' %}
         <div class="box-div">
-            <h1>{{ vehicle }}</h1>
+            <h1>{{ trainInfo.trainType}} {{ trainInfo.setNumber }}</h1>
             {% if photoURL %}
                 <div style="text-align: center;">
-                    <img src="{{ photoURL }}" alt="Photo of vehicle {{ vehicle }}" style="max-width: 100%;">
+                    <a href="https://victorianrailphotos.com/trains/{{vehicle}}" target="_blank">
+                        <img src="{{ photoURL }}" alt="Photo of vehicle {{ vehicle }}" class="train-photo">
+                    </a>
                     {% if photographer %}
                         <p style="font-size: 0.9em; color: var(--text-secondary-color);">Photo by {{ photographer }}</p>
                     {% endif %}
@@ -23,6 +26,24 @@
             {% else %}
                 <p>No photo available for this vehicle.</p>
             {% endif %}
+            <table>
+                <tr>
+                    <th>Train Type</th>
+                    <td>{{ trainInfo.trainType }}</td>
+                </tr>
+                <tr>
+                    <th>Set Number</th>
+                    <td>{{ trainInfo.setNumber }}</td>
+                </tr>
+                <tr>
+                    <th>Operator</th>
+                    <td>{{ trainInfo.operator }}</td>
+                </tr>
+                <tr>
+                    <th>Livery</th>
+                    <td>{{ trainInfo.livery }}</td>
+                </tr>
+            </table>
         </div>
     </body>
 </html>

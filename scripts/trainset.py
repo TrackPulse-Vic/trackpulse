@@ -93,3 +93,28 @@ def sydneyTrainType(setNumber):
         trainType = 'Unknown'
         
     return trainType
+
+def trainInfo(number):
+    """
+    Get the train info from the number, returns a dict with the info
+    """
+    setN, trainType = setNumber(number)
+    if setN is None:
+        return None
+    else:
+        with open('datalists/trainsets.csv', mode='r', newline='') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                if row[0] == setN:
+                    return {
+                        'setNumber': setN,
+                        'trainType': trainType,
+                        'livery': row[1],
+                        'inService': row[2],
+                        'status': row[3],
+                        'notes': row[4],
+                        'name': row[5],
+                        'interior': row[7],
+                        'gauge': row[8],
+                        'operator': row[9]
+                    }
