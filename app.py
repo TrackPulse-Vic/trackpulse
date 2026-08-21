@@ -108,6 +108,9 @@ MODE_DISPLAY_NAMES = {
     'actbus': 'ACT Buses',
 }
 
+TRAIN_INFO_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datalists')
+os.makedirs(TRAIN_INFO_ROOT, exist_ok=True)
+
 
 def display_mode_name(mode):
     if not mode:
@@ -869,6 +872,25 @@ def apiDeleteLog(key):
     else:
         return jsonify({"error": "Error deleting log"}), 500
 
+# function to download csvs from victorianrailphotos.com
+def updateCSVs():
+    try:
+        csv_urls = {
+            'trainsets.csv': 'https://victorianrailphotos.com/api/trainsets.csv',
+            'tramsets.csv': 'https://victorianrailphotos.com/api/tramsets.csv'
+        }
+        for filename, url in csv_urls.items():
+            response = requests.get(url)
+            if response.status_code == 200:
+                with open(os.path.join(TRAIN_INFO_ROOT, filename), 'wb') as f:
+                    f.write(response.content)
+                print(f"Updated {filename} successfully.")
+            else:
+                print(f"Failed to update {filename}. Status code: {response.status_code}")
+    except Exception as e:
+        print(f"Error updating CSVs: {e}")
+
 # run ts
 if __name__ == "__main__":
+    updateCSVs()  # Update CSVs on startup
     app.run(debug=True, port=5002)
