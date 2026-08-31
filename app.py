@@ -530,8 +530,8 @@ def handle_log_submission(form_data):
 
     logInfo = dict(logInfo)
     logInfo['date'] = date
-    logInfo['number'] = number
-    logInfo['type'] = vehicle_type
+    logInfo['number'] = number.strip()
+    logInfo['type'] = vehicle_type.strip()
     logInfo['user'] = session.get("user")['userinfo']['sub']
     logInfo['tags'] = None
     logInfo['operator'] = getOperator(logInfo.get('mode'), logInfo.get('type'))
@@ -542,8 +542,8 @@ def handle_log_submission(form_data):
         date=logInfo.get('date'),
         vehicleNumber=logInfo.get('number'),
         vehicleType=logInfo.get('type'),
-        start=logInfo.get('start'),
-        end=logInfo.get('end'),
+        start=logInfo.get('start').strip(),
+        end=logInfo.get('end').strip(),
         line=logInfo.get('line'),
         operator=logInfo.get('operator'),
         note=logInfo.get('notes'),
