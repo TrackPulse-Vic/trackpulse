@@ -1,3 +1,4 @@
+# This is inteneded for the Trackpulse server, it may not work on other systems.
 #!/usr/bin/env bash
 
 set -euo pipefail
