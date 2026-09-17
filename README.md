@@ -1,4 +1,4 @@
-# tpv-web-logger
+# trackpulse-web-logger
 Log your trips on Australia's public transport
 
 ## Screenshots
