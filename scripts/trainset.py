@@ -34,7 +34,10 @@ def setNumber(input_str):
     for set_str in all_sets:
         temp = set_str[0].split('-')
         if input_str in temp:
-            return set_str[0], set_str[6]
+            vehicle_type = set_str[6]
+            if vehicle_type == 'Vlocity':
+                vehicle_type = 'VLocity'
+            return set_str[0], vehicle_type
     return None, None
 
 def setNumberTram(input_str):   
