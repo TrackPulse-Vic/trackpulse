@@ -17,7 +17,7 @@ from scripts.apiKeyManager import checkKey
 from scripts.converter import convertLogs
 from scripts.log import getOperator, logTrip
 from scripts.map.main import getVehiclePositions
-from scripts.reader import deleteLog, getLogs
+from scripts.reader import deleteLog, getLogs, updateLog
 from scripts.trainset import setNumber, setNumberTram, trainInfo
 from scripts.userDBmanager import addUser
 from scripts.vrpApi import getTrainImage
@@ -592,6 +592,42 @@ def deleteLogAPI():
             return 'Error deleting log', 500
     except Exception as e:
         print(f"Error in /api/deleteLog: {e}")
+        return "Internal Server Error, please try again later.", 500
+
+# Log edit API
+@app.route('/api/editLog', methods=['POST'])
+@limiter.limit("10 per minute")
+def editLogAPI():
+    try:
+        if not session.get("user"):
+            return 'user not authenticated', 401
+
+        data = request.get_json(silent=True) or {}
+        log_id = data.get('id')
+        if not log_id:
+            return 'Log id is required', 400
+
+        user_id = session.get('user')['userinfo']['sub']
+        logs = getLogs(user=user_id, id=log_id)
+        if not logs:
+            return 'Log not found or not allowed to be edited!', 404
+
+        updated = updateLog(
+            logID=log_id,
+            origin=data.get('origin', '').strip(),
+            destination=data.get('destination', '').strip(),
+            date=data.get('datetime', '').strip(),
+            line=data.get('line', '').strip(),
+            vehicle=data.get('vehicle', '').strip(),
+            number=data.get('number', '').strip(),
+            note=data.get('note', '').strip(),
+        )
+        if not updated:
+            return 'Error editing log', 500
+
+        return 'Log updated successfully', 200
+    except Exception as e:
+        print(f"Error in /api/editLog: {e}")
         return "Internal Server Error, please try again later.", 500
 
 # convert page and api

@@ -55,3 +55,19 @@ def deleteLog(logID):
         return True
     except sqlite3.Error:
         return False
+
+def updateLog(logID, origin, destination, date, line, vehicle, number, note):
+    try:
+        conn = sqlite3.connect('databases/logs.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE logs
+            SET date=?, route=?, start=?, end=?, type=?, number=?, notes=?
+            WHERE id=?
+        ''', (date, line, origin, destination, vehicle, number, note, logID))
+        conn.commit()
+        updated = cursor.rowcount > 0
+        conn.close()
+        return updated
+    except sqlite3.Error:
+        return False
