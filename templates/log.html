@@ -36,7 +36,9 @@
                             </optgroup>
                         {% endfor %}
                         <option value="Other">Other</option>
-                    </select><br><br>
+                    </select>
+                    <input type="text" id="custom-line" name="custom_line" placeholder="Enter line name" hidden>
+                    <br><br>
                 {% else %}
                     <input type="text" id="line" name="line" required><br><br>
                 {% endif %}
@@ -108,6 +110,22 @@
         document.addEventListener('DOMContentLoaded', () => {
             const modeInput = document.getElementById('mode');
             const stationsList = document.getElementById('stations');
+            const lineInput = document.getElementById('line');
+            const customLineInput = document.getElementById('custom-line');
+
+            if (lineInput && customLineInput) {
+                const updateCustomLineInput = () => {
+                    const isOther = lineInput.value === 'Other';
+                    customLineInput.hidden = !isOther;
+                    customLineInput.required = isOther;
+                    if (!isOther) {
+                        customLineInput.value = '';
+                    }
+                };
+
+                lineInput.addEventListener('change', updateCustomLineInput);
+                updateCustomLineInput();
+            }
 
             if (!modeInput || !stationsList) {
                 return;

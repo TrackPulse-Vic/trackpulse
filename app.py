@@ -83,7 +83,7 @@ lineColors = {
 global MODES
 MODES = ['All', 'victrain', 'victram', 'vicbus', 'nswtrain', 'nswbus', 'nswferry', 'nswlightrail', 'satrain', 'satram', 'watrain', 'wabus', 'actlightrail', 'actbus']
 
-TRANSPORT_VIC_STOPS_URL = 'https://opendata.transport.vic.gov.au/dataset/6d36dfd9-8693-4552-8a03-05eb29a391fd/resource/a2cba0b0-bddc-4b87-b495-2b6b7013af6e/download/public_transport_stops.geojson'
+TRANSPORT_VIC_STOPS_URL = 'https://opendata.transport.vic.gov.au/dataset/6d36dfd9-8693-4552-8a03-05eb29a391fd/resource/dc5a9bdc-b79e-4806-8288-2a983db30930/download/public_transport_stops.geojson'
 
 MODE_STOP_GROUPS = {
     'victram': {'METRO TRAM'},
@@ -392,7 +392,8 @@ def logPage():
     lineOptions = {
         'victrain': {
             'Metro': ["Alamein", "Belgrave", "Craigieburn", "Cranbourne", "Flemington Racecourse", "Frankston", "Glen Waverley", "Hurstbridge", "Lilydale", "Mernda", "Pakenham", "Sandringham", "Stony Point", "Sunbury", "Upfield", "Werribee", "Williamstown"],
-            'V/Line': ["Albury", "Ararat", "Bairnsdale", "Ballarat", "Bendigo", "Echuca", "Geelong", "Maryborough", "Seymour", "Shepparton", "Swan Hill", "Traralgon", "Warrnambool"]
+            'V/Line': ["Albury", "Ararat", "Bairnsdale", "Ballarat", "Bendigo", "Echuca", "Geelong", "Maryborough", "Seymour", "Shepparton", "Swan Hill", "Traralgon", "Warrnambool"],
+            'Heritage & Tourist': ["Puffing Billy", "Walhalla Goldfields Railway", "Yarra Valley Railway", "Mornington Railway", "Victorian Goldfields Railway", "Daylesford Spa Country Railway"],
         },
         'victram': {
             'Tram Routes': ["1", "3", "5", "6", "11", "12", "16", "19", "30", "35", "48", "57", "58", "59", "64", "64a", "67", "70", "70", "72", "75", "78", "82", "86", "96", "109"]
@@ -509,6 +510,13 @@ def handle_log_submission(form_data):
     logInfo = form_data
     if not session.get("user"):
         return None, False, 'user not authenticated'
+
+    if logInfo.get('line') == 'Other':
+        custom_line = logInfo.get('custom_line', '').strip()
+        if not custom_line:
+            return None, False, 'Please enter a custom line.'
+        logInfo = dict(logInfo)
+        logInfo['line'] = custom_line
 
     # date will be today if not provided
     if logInfo.get('date') == '':
