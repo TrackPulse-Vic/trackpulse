@@ -561,7 +561,13 @@ def handle_log_submission(form_data):
     if not success:
         return logInfo, False, 'Error adding trip to Database, please try again.'
 
-    return logInfo, True, 'Trip logged!'
+    trip_message = (
+        f"Trip logged! {logInfo.get('date')} | "
+        f"{logInfo.get('line')} | "
+        f"{logInfo.get('type')} {logInfo.get('number')} | "
+        f"{logInfo.get('start')} to {logInfo.get('end')}"
+    )
+    return logInfo, True, trip_message
 
 
 @app.route('/log/submit', methods=['POST'])
