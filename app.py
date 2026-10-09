@@ -2,6 +2,7 @@ import datetime
 import os
 import re
 from collections import Counter
+from functools import lru_cache
 from urllib.parse import quote_plus, urlencode
 import dotenv
 from flask import Flask, jsonify, redirect, render_template, request, url_for
@@ -17,7 +18,7 @@ from scripts.apiKeyManager import checkKey
 from scripts.converter import convertLogs
 from scripts.log import getOperator, logTrip
 from scripts.map.main import getVehiclePositions
-from scripts.reader import deleteLog, getLogs, updateLog
+from scripts.reader import countLogs, deleteLog, getLogs, updateLog
 from scripts.trainset import setNumber, setNumberTram, trainInfo
 from scripts.userDBmanager import addUser
 from scripts.vrpApi import getTrainImage
@@ -27,6 +28,7 @@ dotenv.load_dotenv()
 
 app = Flask(__name__)
 app.secret_key =os.getenv('APP_SECRET_KEY')
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 86400
 
 # Flask-Limiter instance
 limiter = Limiter(app)
@@ -150,7 +152,9 @@ def load_geojson_stops():
     return {mode: sorted(stop_names) for mode, stop_names in stops_by_mode.items()}
 
 
-GEOJSON_STOPS_BY_MODE = load_geojson_stops()
+# Remote stop data is optional. Keep startup and the log form independent of a
+# third-party request; the checked-in station lists are the fast fallback.
+GEOJSON_STOPS_BY_MODE = {}
 
 
 def load_station_names_from_file(mode):
@@ -161,6 +165,7 @@ def load_station_names_from_file(mode):
         return []
 
 
+@lru_cache(maxsize=32)
 def get_stop_names_for_mode(mode):
     if not mode:
         return []
@@ -174,6 +179,15 @@ def get_stop_names_for_mode(mode):
         return sorted(set(stop_names))
 
     return load_station_names_from_file(mode)
+
+
+@app.after_request
+def add_cache_headers(response):
+    if request.path.startswith('/static/'):
+        response.headers.setdefault('Cache-Control', 'public, max-age=86400')
+    elif request.path == '/api/stops':
+        response.headers.setdefault('Cache-Control', 'public, max-age=86400')
+    return response
 
 
 def build_dashboard_data(logs):
@@ -298,7 +312,7 @@ def logout():
 
 @app.route("/")
 def mainPage():
-    logCount = len(getLogs())
+    logCount = countLogs()
     
     if request.args.get('src') == 'nav':
         return render_template('landing.html', logCount=logCount, is_authenticated=session.get("user") is not None)

@@ -1,8 +1,26 @@
 import sqlite3
 
 
+_indexes_ready = False
+
+
+def _ensure_indexes(conn):
+    global _indexes_ready
+    if _indexes_ready:
+        return
+
+    conn.executescript('''
+        CREATE INDEX IF NOT EXISTS idx_logs_user_date ON logs(userid, date DESC);
+        CREATE INDEX IF NOT EXISTS idx_logs_user_mode_date ON logs(userid, mode, date DESC);
+        CREATE INDEX IF NOT EXISTS idx_logs_user_id ON logs(userid, id);
+    ''')
+    conn.commit()
+    _indexes_ready = True
+
+
 def getLogs(user=None, mode=None, line=None, start=None, end=None, type=None, date=None, number=None, id=None, order='DESC'):
     conn = sqlite3.connect('databases/logs.db')
+    _ensure_indexes(conn)
     cursor = conn.cursor()
     query = "SELECT * FROM logs WHERE 1=1"
     params = []
@@ -44,6 +62,13 @@ def getLogs(user=None, mode=None, line=None, start=None, end=None, type=None, da
     logs = cursor.fetchall()
     conn.close()
     return logs
+
+
+def countLogs():
+    conn = sqlite3.connect('databases/logs.db')
+    count = conn.execute('SELECT COUNT(*) FROM logs').fetchone()[0]
+    conn.close()
+    return count
 
 def deleteLog(logID):
     try:

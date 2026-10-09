@@ -1,4 +1,11 @@
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/footer.css') }}">
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register("{{ url_for('static', filename='icons/logos/service-worker.js') }}");
+        }, { once: true });
+    }
+</script>
 <footer>
     <div class="box-div" style="margin-left: 0%; margin-right: 0%;">
     <h2>TrackPulse</h2>

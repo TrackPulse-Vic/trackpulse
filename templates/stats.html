@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" sizes="96x96" href="{{ url_for('static', filename='icons/logos/favicon-96x96.png') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -25,6 +25,7 @@
         </table>
 
         <script>
+        window.addEventListener('load', () => {
         const labels = {{ truncated_labels | tojson }};
         const values = {{ truncated_values | tojson }};
 
@@ -125,6 +126,7 @@
                     }
                 }
             }
+        });
         });
     </script>
     </div>

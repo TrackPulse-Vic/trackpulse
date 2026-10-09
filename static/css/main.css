@@ -11,6 +11,51 @@
     --button-hover-color: #3e3e3e;
 }
 
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 320ms;
+    animation-timing-function: ease-out;
+}
+
+::view-transition-old(root) {
+    animation-name: page-exit;
+}
+
+::view-transition-new(root) {
+    animation-name: page-enter;
+}
+
+@keyframes page-exit {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(-2%); }
+}
+
+@keyframes page-enter {
+    from { opacity: 0; transform: translateX(2%); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@supports not selector(::view-transition-old(root)) {
+    body {
+        animation: page-enter 220ms ease-out both;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: 0s;
+    }
+
+    body {
+        animation: none;
+    }
+}
+
 /* @media (prefers-color-scheme: light) {
     :root {
         --background-color: #ffffff;

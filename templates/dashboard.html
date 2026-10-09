@@ -22,8 +22,7 @@
     <meta name="msapplication-TileImage" content="{{ url_for('static', filename='icons/logos/ms-icon-144x144.png') }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>navigator.serviceWorker.register("{{ url_for('static', filename='icons/logos/service-worker.js') }}")</script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .dashboard-box {
             width: 100%;
@@ -386,7 +385,7 @@
             }));
         }
 
-        renderDashboardCharts();
+        window.addEventListener('load', renderDashboardCharts, { once: true });
 
         const themeQuery = window.matchMedia('(prefers-color-scheme: dark)');
         const themeChangeHandler = () => renderDashboardCharts();
