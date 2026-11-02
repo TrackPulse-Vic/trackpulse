@@ -1,4 +1,6 @@
 import datetime
+import csv
+import io
 import os
 import re
 from collections import Counter
@@ -14,7 +16,7 @@ import tempfile
 
 import requests
 
-from scripts.apiKeyManager import checkKey
+from scripts.apiKeyManager import checkKey, generateKey
 from scripts.converter import convertLogs
 from scripts.log import getOperator, logTrip
 from scripts.map.main import getVehiclePositions
@@ -711,38 +713,77 @@ def apiPhoto(mode):
 # user facing API
 @app.route('/api')
 def apiInfoPage():
-    return render_template('apiinfo.html')
+    return render_template('apiinfo.html', generated_api_key=None)
+
+
+@app.route('/api/key/generate', methods=['POST'])
+def generateApiKey():
+    user = session.get('user') or {}
+    user_id = user.get('userinfo', {}).get('sub')
+    if not user_id:
+        return jsonify({"error": "You must be logged in to generate an API key"}), 401
+
+    try:
+        key = generateKey(user_id)
+    except (OSError, RuntimeError) as exc:
+        print(f"Error generating API key: {exc}")
+        return jsonify({"error": "Unable to generate an API key"}), 500
+
+    return render_template('apiinfo.html', generated_api_key=key)
+
+def api_log_data(log, include_user=False):
+    data = {
+        'id': log[0],
+        'mode': log[2],
+        'date': log[3],
+        'operator': log[4],
+        'number': log[5],
+        'type': log[6],
+        'line': log[7],
+        'start': log[8],
+        'end': log[9],
+        'notes': log[10],
+        'tags': log[11],
+    }
+    if include_user:
+        data['user'] = log[1]
+    return data
+
+
+def api_csv_response(logs, mode=None):
+    output = io.StringIO(newline='')
+    writer = csv.writer(output)
+    writer.writerow(['id', 'mode', 'date', 'operator', 'number', 'type',
+                    'line', 'start', 'end', 'notes', 'tags'])
+    for log in logs:
+        writer.writerow([log[0], log[2], log[3], log[4], log[5], log[6],
+                         log[7], log[8], log[9], log[10], log[11]])
+
+    filename = f"logs-{mode or 'all'}.csv"
+    return output.getvalue(), 200, {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': f'attachment; filename="{filename}"'
+    }
+
 
 @app.route('/api/<key>/logs')
 def apiUserLogs(key):
     mode = request.args.get('mode', None)
     if mode == 'All':
         mode = None
-    # simple api key auth
-    api_keys = {
-        'your_api_key_here': 'oauth2|discord|780303451980038165',
-    }
-    if key not in api_keys:
+    user_id, privileged = checkKey(key)
+    if not user_id:
         return jsonify({"error": "Invalid API key"}), 403
-    user_id = api_keys[key]
+
+    if request.args.get('global', 'false').lower() == 'true':
+        if not privileged:
+            return jsonify({"error": "Not authorized to view global logs"}), 403
+        user_id = None
+    elif privileged and request.args.get('userid'):
+        user_id = request.args['userid']
+
     logs = getLogs(user=user_id, mode=mode)
-    log_list = []
-    for log in logs:
-        log_data = {
-            'id': log[0],
-            'mode': log[2],
-            'date': log[3],
-            'operator': log[4],
-            'number': log[5],
-            'type': log[6],
-            'line': log[7],
-            'start': log[8],
-            'end': log[9],
-            'notes': log[10],
-            'tags': log[11],
-        }
-        log_list.append(log_data)
-    return jsonify(log_list)
+    return jsonify([api_log_data(log) for log in logs])
 
 @app.route('/api/<key>/logs.csv')
 def apiUserLogsCSV(key):
@@ -765,10 +806,7 @@ def apiUserLogsCSV(key):
         user_id = userid
         
     logs = getLogs(user=user_id, mode=mode)
-    csv_data = "id,number,type,date,line,start,end,note,operator,mode,tag\n"
-    for log in logs:
-        csv_data += f'{log[0]},{log[5]},{log[6]},{log[3]},{log[7]},{log[8]},{log[9]},"{log[10]}",{log[4]},{log[2]},{log[11]}\n'
-    return csv_data, 200, {'Content-Type': 'text/csv; charset=utf-8'}
+    return api_csv_response(logs, mode)
 
 # get single log by id user facing api
 @app.route('/api/<key>/log/<int:id>')
@@ -785,27 +823,14 @@ def apiUserSingleLog(key, id):
         return jsonify({"error": "Log not found or not allowed to be viewed!"}), 404
     
     log = logs[0]
-    log_data = {
-        'user': log[1],
-        'id': log[0],
-        'mode': log[2],
-        'date': log[3],
-        'operator': log[4],
-        'number': log[5],
-        'type': log[6],
-        'line': log[7],
-        'start': log[8],
-        'end': log[9],
-        'notes': log[10],
-        'tags': log[11],
-    }
-    return jsonify(log_data)
+    return jsonify(api_log_data(log, include_user=privileged))
 
 # csv via auth token
 @app.route('/api/logs.csv')
 def apiUserLogsCSVAuth():
     mode = request.args.get('mode', None)
-    userid = session.get('user')['userinfo']['sub']
+    user = session.get('user') or {}
+    userid = user.get('userinfo', {}).get('sub')
     
     if mode == 'All':
         mode = None
@@ -814,16 +839,7 @@ def apiUserLogsCSVAuth():
         return jsonify({"error": "Invalid API key"}), 403
     
     logs = getLogs(user=userid, mode=mode)
-    csv_data = "id,mode,date,operator,number,type,line,start,end,notes,tags\n"
-    csv_data = "id,number,type,date,line,start,end,note,operator,mode,tag\n"
-    for log in logs:
-        csv_data += f'{log[0]},{log[5]},{log[6]},{log[3]},{log[7]},{log[8]},{log[9]},"{log[10]}",{log[4]},{log[2]},{log[11]}\n'
-    filename = f"logs-{mode if mode else 'all'}.csv"
-    headers = {
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': f'attachment; filename="{filename}"'
-    }
-    return csv_data, 200, headers
+    return api_csv_response(logs, mode)
 
 # user facing add log
 @app.route('/api/<key>/addLog', methods=['POST'])
@@ -831,60 +847,51 @@ def apiAddLog(key):
     userid, privileged = checkKey(key)
     if not userid:
         return jsonify({"error": "Invalid API key"}), 403
-    logInfo = request.form
-        
-    # thinh to make it so only tpv can add logs for other users
-    if logInfo.get('userid') != userid:
+    logInfo = request.get_json(silent=True) or request.form.to_dict()
+    target_userid = logInfo.get('userid') or userid
+
+    if target_userid != userid:
         if privileged:
-            userid = logInfo.get('userid')
+            userid = target_userid
         else:
             return jsonify({"error": "Not authorized to log for other users!"}), 403
-    
-    if logInfo.get('date') == None:
+
+    required = ('mode', 'start', 'end', 'line', 'number')
+    missing = [field for field in required if not str(logInfo.get(field, '')).strip()]
+    if missing:
+        return jsonify({"error": f"Missing required fields: {', '.join(missing)}"}), 400
+    date = logInfo.get('date')
+    if not date:
         date = datetime.datetime.now().strftime('%Y-%m-%d')
-    else:
-        date = logInfo.get('date')
-    if logInfo.get('type') != None:
-        type = logInfo.get('type')
-        number = logInfo.get('number')
-    else:
+
+    vehicle_type = (logInfo.get('type') or '').strip()
+    number = logInfo.get('number', '').strip()
+    if not vehicle_type:
         if logInfo.get('mode') == 'victrain':
-            number, type = setNumber(logInfo.get('number'))
-            if number == None:
-                number = logInfo.get('number')
-            if type == None:
-                type = logInfo.get('type')
-                
+            detected_number, vehicle_type = setNumber(number)
+            number = detected_number or number
         elif logInfo.get('mode') == 'victram':
-            number, type = setNumberTram(logInfo.get('number'))
-            if number == None:
-                number = logInfo.get('number')
-            if type == None:
-                type = logInfo.get('type')
-                
-    # remove dashes
+            detected_number, vehicle_type = setNumberTram(number)
+            number = detected_number or number
+        else:
+            return jsonify({"error": "type is required for this mode"}), 400
+
     if number.endswith('-'):
         number = number[:-1]
-    
-            
-    # check date format
+
     try:
         datetime.datetime.strptime(date, '%Y-%m-%d')
-    except ValueError:
+    except (TypeError, ValueError):
         return jsonify({"error": "Invalid date format, should be YYYY-MM-DD"}), 400
-    
+
     logInfo = dict(logInfo)
     logInfo['user'] = userid
     logInfo['date'] = date
     logInfo['number'] = number
-    logInfo['type'] = type
-    logInfo['user'] = userid
+    logInfo['type'] = vehicle_type
     logInfo['tags'] = None
     logInfo['operator'] = getOperator(logInfo.get('mode'), logInfo.get('type'))
-    
-    if logInfo.get('note') == None:
-        logInfo['note'] = ''
-    
+
     success = logTrip(
         user=logInfo.get('user'),
         mode=logInfo.get('mode'),
@@ -895,7 +902,7 @@ def apiAddLog(key):
         end=logInfo.get('end'),
         line=logInfo.get('line'),
         operator=logInfo.get('operator'),
-        note=logInfo.get('note'),
+        note=logInfo.get('note', logInfo.get('notes', '')),
         tags=logInfo.get('tags'),
     )
     
@@ -904,8 +911,7 @@ def apiAddLog(key):
         print(f'error adding log: {logInfo}')
         return jsonify({"error": message}), 500
     else:
-        message = jsonify({**logInfo, 'log_id': success})
-        return message, 200
+        return jsonify({**logInfo, 'log_id': success}), 200
     
 # user facing delete log via API key
 @app.route('/api/<key>/deleteLog', methods=['POST'])
@@ -917,6 +923,8 @@ def apiDeleteLog(key):
 
     data = request.get_json() or request.form
     logID = data.get('id')
+    if not logID:
+        return jsonify({"error": "Log id is required"}), 400
     useridLogToDelete = data.get('userid', userid)
 
     # Only privileged keys can delete logs for other users
