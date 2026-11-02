@@ -15,11 +15,23 @@
 <body>
     {% include 'navbar.html' %}
     <h1>Trackpulse API documentation</h1>
-    < class="box-div">
-        <p>The Trackpulse API will allow you to read and add logs to your account.<br>This will be coming in a later update!</p>
-        <p>Base URL: </p>
+    <div class="box-div">
+        <p>The Trackpulse API lets you read, create, and delete logs.</p>
+        <p>Base URL: <code>{{ request.url_root }}</code></p>
         <h3>Keys</h3>
-        <p>Coming soon...</p>
+        {% if session.get("user") %}
+        <form method="post" action="{{ url_for('generateApiKey') }}">
+            <button type="submit">Generate an API key</button>
+        </form>
+        {% if generated_api_key %}
+        <p><strong>Your new API key:</strong></p>
+        <pre><code>{{ generated_api_key }}</code></pre>
+        <p>Copy this key now. It will not be shown again.</p>
+        {% endif %}
+        {% else %}
+        <p><a href="{{ url_for('login') }}">Log in</a> to generate an API key for your account.</p>
+        {% endif %}
+        <p>Include your API key in the URL in place of <code>&lt;key&gt;</code>.</p>
 
         <h3>Read Logs</h3>
         <p><strong>GET <code>/api/&lt;key&gt;/logs</code></strong></p>
