@@ -706,9 +706,9 @@ def trainLogsCSV():
     for index, log in enumerate(logs, start=1):
         writer.writerow([
             f'#{index:x}',
+            log[3],
             log[5],
             log[6],
-            log[3],
             log[8],
             log[9],
             log[7],
