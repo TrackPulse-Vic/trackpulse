@@ -709,9 +709,9 @@ def trainLogsCSV():
             log[5],
             log[6],
             log[3],
-            log[9],
             log[7],
             log[8],
+            log[9],
             log[10],
         ])
 
