@@ -684,6 +684,42 @@ def convertAPI():
     
     return render_template('convert.html', success="Conversion successful!")
 
+@app.route('/api/trainlogs.csv')
+def trainLogsCSV():
+    user = session.get('user') or {}
+    userid = user.get('userinfo', {}).get('sub')
+    if not userid:
+        return jsonify({"error": "User not authenticated"}), 401
+
+    mode = request.args.get('mode')
+    train_modes = {available_mode for available_mode in MODES if available_mode.endswith('train')}
+    if mode and mode not in train_modes:
+        return jsonify({"error": "Invalid train mode"}), 400
+
+    logs = getLogs(user=userid, mode=mode)
+    if not mode:
+        logs = [log for log in logs if log[2] in train_modes]
+    logs.reverse()
+
+    output = io.StringIO(newline='')
+    writer = csv.writer(output)
+    for index, log in enumerate(logs, start=1):
+        writer.writerow([
+            f'#{index:x}',
+            log[5],
+            log[6],
+            log[3],
+            log[8],
+            log[9],
+            log[7],
+            log[10],
+        ])
+
+    return output.getvalue(), 200, {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="train-logs.csv"'
+    }
+
 # TRAIN SEARCH AND MAP PAGE
 @app.route('/map/<mode>')
 def mapPage(mode):
