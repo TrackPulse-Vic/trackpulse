@@ -21,8 +21,8 @@ from scripts.converter import convertLogs
 from scripts.log import getOperator, logTrip
 from scripts.map.main import getVehiclePositions
 from scripts.reader import countLogs, deleteLog, getLogs, updateLog
-from scripts.trainset import setNumber, setNumberTram, trainInfo
-from scripts.userDBmanager import addUser
+from scripts.trainset import findSets, findTramSets, trainInfo
+from scripts.userDBmanager import addUser, getUser, setPrivacy
 from scripts.vrpApi import getTrainImage
 
 
@@ -334,6 +334,68 @@ def dashboardPage():
     dashboard_data = build_dashboard_data(logs)
     return render_template('dashboard.html', session=session.get("user"), dashboard=dashboard_data)
 
+def profile_display_name(user):
+    name = (user.get('name') or '').strip()
+    # auth0 uses the email as the name for password accounts, never show that publicly
+    if not name or '@' in name:
+        return f"TrackPulse user #{user['id']}"
+    return name
+
+
+def current_profile_user():
+    '''Users row for the logged in user, creating it for sessions from before the users db existed.'''
+    userinfo = (session.get('user') or {}).get('userinfo') or {}
+    sub = userinfo.get('sub')
+    if not sub:
+        return None
+    user = getUser(sub=sub)
+    if user is None:
+        addUser(sub, userinfo.get('name'), userinfo.get('email'))
+        user = getUser(sub=sub)
+    return user
+
+
+@app.route('/profile')
+def ownProfilePage():
+    if not session.get("user"):
+        return redirect('/login')
+    user = current_profile_user()
+    return redirect(url_for('profilePage', user_id=user['id']))
+
+
+@app.route('/user/<int:user_id>')
+def profilePage(user_id):
+    user = getUser(user_id=user_id)
+    viewer = current_profile_user()
+    is_owner = viewer is not None and user is not None and viewer['id'] == user['id']
+
+    # private and missing profiles look the same so ids can't be probed
+    if user is None or (user['private'] and not is_owner):
+        return render_template('custommessage.html', message="This profile is private"), 404
+
+    logs = getLogs(user=user['sub'])
+    profile_data = build_dashboard_data(logs)
+    return render_template(
+        'profile.html',
+        profile=user,
+        display_name=profile_display_name(user),
+        dashboard=profile_data,
+        is_owner=is_owner,
+        message=request.args.get('message'),
+    )
+
+
+@app.route('/profile/privacy', methods=['POST'])
+def profilePrivacy():
+    if not session.get("user"):
+        return redirect('/login')
+    user = current_profile_user()
+    private = request.form.get('private') == 'true'
+    setPrivacy(user['sub'], private)
+    message = 'Your profile is now private.' if private else 'Your profile is now public.'
+    return redirect(url_for('profilePage', user_id=user['id'], message=message))
+
+
 @app.route('/stats')
 def statsPage():
     if not session.get("user"):
@@ -512,6 +574,11 @@ def addLogAPI():
         if not success:
             if message == 'user not authenticated':
                 return message, 401
+            if message == MULTIPLE_MATCHES:
+                return jsonify({
+                    'error': 'Multiple vehicles match this number, resubmit with candidate set to the chosen index.',
+                    'candidates': [{'index': i, 'number': n, 'type': t} for i, (n, t) in enumerate(logInfo['candidates'])],
+                }), 409
             print(f'error adding log: {logInfo}')
             return message, 400
 
@@ -519,6 +586,20 @@ def addLogAPI():
     except Exception as e:
         print(f"Error in /api/addLog: {e}")
         return "Internal Server Error, please try again later.", 500
+
+
+MULTIPLE_MATCHES = 'multiple vehicles match'
+AUTO_DETECT_MODES = ('victrain', 'victram')
+
+
+def find_vehicle_candidates(mode, number):
+    '''All (number, type) pairs matching the inputted number for auto-detected modes.'''
+    number = (number or '').strip()
+    if mode == 'victrain':
+        return findSets(number)
+    if mode == 'victram':
+        return findTramSets(number)
+    return []
 
 
 def handle_log_submission(form_data):
@@ -541,18 +622,34 @@ def handle_log_submission(form_data):
         date = logInfo.get('date')
 
     # get type and number of the vehicle
-    if logInfo.get('type') != "":
+    candidate = (logInfo.get('candidate') or '').strip()
+    if candidate:
+        # the user picked one of several matching vehicles
+        try:
+            index = int(candidate)
+            number, vehicle_type = find_vehicle_candidates(logInfo.get('mode'), logInfo.get('number'))[index]
+        except (ValueError, IndexError):
+            return None, False, 'Please choose one of the listed vehicles.'
+    elif (logInfo.get('type') or '') != "":
         # manual
         vehicle_type = logInfo.get('type')
-        number = logInfo.get('number')
+        number = logInfo.get('number') or ''
+    elif logInfo.get('mode') not in AUTO_DETECT_MODES:
+        # no lookup data for this mode, the type is just unknown
+        vehicle_type = ''
+        number = logInfo.get('number') or ''
     else:
         # auto detect
-        if logInfo.get('mode') == 'victrain':
-            number, vehicle_type = setNumber(logInfo.get('number'))
-        elif logInfo.get('mode') == 'victram':
-            number, vehicle_type = setNumberTram(logInfo.get('number'))
+        candidates = find_vehicle_candidates(logInfo.get('mode'), logInfo.get('number'))
+        if len(candidates) > 1:
+            return {'form': dict(logInfo), 'candidates': candidates}, False, MULTIPLE_MATCHES
+        if not candidates:
+            return None, False, (f"Couldn't find a vehicle matching \"{logInfo.get('number')}\". "
+                                 "Please enter the type manually.")
+        number, vehicle_type = candidates[0]
 
     logInfo = dict(logInfo)
+    logInfo.pop('candidate', None)
     logInfo['date'] = date
     logInfo['number'] = number.strip()
     logInfo['type'] = vehicle_type.strip()
@@ -591,6 +688,9 @@ def submitLogPage():
     try:
         logInfo, success, message = handle_log_submission(request.form)
         if not success:
+            if message == MULTIPLE_MATCHES:
+                return render_template('choosevehicle.html', form=logInfo['form'], candidates=logInfo['candidates'],
+                                       displayName=display_mode_name(request.form.get('mode')))
             return redirect(url_for('logPage', mode=request.form.get('mode'), message=message))
 
         return redirect(url_for('logPage', mode=logInfo.get('mode'), message=message))
@@ -903,14 +1003,18 @@ def apiAddLog(key):
     vehicle_type = (logInfo.get('type') or '').strip()
     number = logInfo.get('number', '').strip()
     if not vehicle_type:
-        if logInfo.get('mode') == 'victrain':
-            detected_number, vehicle_type = setNumber(number)
-            number = detected_number or number
-        elif logInfo.get('mode') == 'victram':
-            detected_number, vehicle_type = setNumberTram(number)
-            number = detected_number or number
-        else:
+        if logInfo.get('mode') not in AUTO_DETECT_MODES:
             return jsonify({"error": "type is required for this mode"}), 400
+        candidates = find_vehicle_candidates(logInfo.get('mode'), number)
+        if len(candidates) > 1:
+            return jsonify({
+                "error": "Multiple vehicles match this number, resubmit with number and type set to one of the candidates.",
+                "candidates": [{"number": n, "type": t} for n, t in candidates],
+            }), 409
+        if candidates:
+            number, vehicle_type = candidates[0]
+        else:
+            vehicle_type = None
 
     if number.endswith('-'):
         number = number[:-1]

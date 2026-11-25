@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'google-analytics.html' %}
+    <title>Choose vehicle - TrackPulse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" sizes="96x96" href="{{ url_for('static', filename='icons/logos/favicon-96x96.png') }}">
+    <style>
+        .candidate-list label {
+            display: block;
+            padding: 10px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--secondary-color);
+            cursor: pointer;
+        }
+        .candidate-list input[type="radio"] {
+            width: auto;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <h1>Which {{ displayName }} did you ride?</h1>
+    <div class="box-div">
+        <p>More than one vehicle matches <strong>{{ form.get('number') }}</strong>. Pick the one you were on:</p>
+        <form action="{{ url_for('submitLogPage') }}" method="post" class="log-entry">
+            {% for key, value in form.items() %}
+                {% if key not in ('candidate', 'type') %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                {% endif %}
+            {% endfor %}
+            <div class="candidate-list">
+                {% for number, type in candidates %}
+                <label>
+                    <input type="radio" name="candidate" value="{{ loop.index0 }}" required {% if loop.first %}checked{% endif %}>
+                    <strong>{{ number }}</strong> &mdash; {{ type or 'Unknown type' }}
+                </label>
+                {% endfor %}
+            </div>
+            <input type="submit" value="Log Trip">
+        </form>
+        <div class="button-list">
+            <a href="{{ url_for('logPage', mode=form.get('mode')) }}">Cancel</a>
+        </div>
+    </div>
+</body>
+</html>
