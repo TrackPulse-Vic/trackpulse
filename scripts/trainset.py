@@ -61,6 +61,47 @@ def setNumberTram(input_str):
             return number, set_type
     return None, None
 
+def findSets(input_str):
+    '''
+    Return every (set number, type) whose carriages/locos include the inputted number.
+    Some numbers are shared (e.g. a Comeng and a heritage Tait), so there can be more than one.
+    '''
+    input_str = (input_str or '').strip()
+    if not input_str:
+        return []
+    matches = []
+    with open('datalists/trainsets.csv', mode='r', newline='') as file:
+        for row in csv.reader(file):
+            if len(row) < 7 or not row[0]:
+                continue
+            if input_str in [part for part in row[0].split('-') if part]:
+                vehicle_type = 'VLocity' if row[6] == 'Vlocity' else row[6]
+                if (row[0], vehicle_type) not in matches:
+                    matches.append((row[0], vehicle_type))
+    return matches
+
+
+def findTramSets(input_str):
+    '''
+    Return every (tram number, type) matching the inputted tram number.
+    '''
+    input_str = (input_str or '').strip()
+    if not input_str:
+        return []
+    matches = []
+    with open('datalists/tramsets.csv', mode='r', newline='') as file:
+        for row in csv.reader(file):
+            if not row or row[0].count('.') != 1:
+                continue
+            set_type, number = row[0].split('.')
+            if input_str not in (set_type, number):
+                continue
+            set_type = 'C2 Class' if set_type == 'C2' else set_type[:1] + ' Class'
+            if (number, set_type) not in matches:
+                matches.append((number, set_type))
+    return matches
+
+
 def sydneyTrainType(setNumber):
     """
     Basic way to find a nsw type, i should probably make it use apetures csv at some point

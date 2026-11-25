@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'google-analytics.html' %}
+    <title>{{ display_name }} - TrackPulse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <link rel="icon" type="image/png" sizes="96x96" href="{{ url_for('static', filename='icons/logos/favicon-96x96.png') }}">
+    <style>
+        .dashboard-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .metric-card {
+            flex: 1 1 180px;
+            min-width: 180px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--secondary-color);
+        }
+        .metric-card h3 { margin: 0 0 6px; font-size: 1rem; }
+        .metric-card p { margin: 0; }
+        .top-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 10px;
+        }
+        .top-grid ol { margin: 0; padding-left: 1.4em; }
+        .recent-scroll { overflow-x: auto; }
+        .recent-table { width: 100%; margin-top: 10px; }
+        .recent-table a { color: inherit; text-decoration: underline; }
+        .privacy-status { margin-top: 0; }
+        .share-link { width: 100%; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <h1>{{ display_name }}</h1>
+
+    {% if message %}
+    <div class="box-div">
+        <h3 class="success">{{ message }}</h3>
+    </div>
+    {% endif %}
+
+    {% if is_owner %}
+    <div class="box-div">
+        <h2>Privacy</h2>
+        {% if profile.private %}
+            <p class="privacy-status"><i class="fa-solid fa-lock"></i> Your profile is <strong>private</strong>. Only you can see this page.</p>
+        {% else %}
+            <p class="privacy-status"><i class="fa-solid fa-globe"></i> Your profile is <strong>public</strong>. Anyone with the link can see your stats and recent trips (notes are never shown).</p>
+            <label for="share-link">Share link:</label>
+            <input id="share-link" class="share-link" type="text" readonly value="{{ url_for('profilePage', user_id=profile.id, _external=True) }}" onclick="this.select()">
+        {% endif %}
+        <form action="{{ url_for('profilePrivacy') }}" method="post">
+            <input type="hidden" name="private" value="{{ 'false' if profile.private else 'true' }}">
+            <button type="submit" class="button">{{ 'Make profile public' if profile.private else 'Make profile private' }}</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="box-div">
+        <h2>Overview</h2>
+        <div class="dashboard-grid">
+            <div class="metric-card">
+                <h3>Total trips</h3>
+                <p>{{ dashboard.summary.total_logs }}</p>
+            </div>
+            <div class="metric-card">
+                <h3>Top mode</h3>
+                <p>{{ dashboard.summary.top_mode }}</p>
+            </div>
+            <div class="metric-card">
+                <h3>Top line</h3>
+                <p>{{ dashboard.summary.top_route }}</p>
+            </div>
+            <div class="metric-card">
+                <h3>Latest trip</h3>
+                <p>{{ dashboard.summary.latest_trip }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% if dashboard.summary.total_logs %}
+    <div class="box-div">
+        <h2>Favourites</h2>
+        <div class="top-grid">
+            {% for title, data in [('Modes', dashboard.modes), ('Lines', dashboard.routes), ('Vehicle types', dashboard.types), ('Operators', dashboard.operators)] %}
+            <div>
+                <h3>{{ title }}</h3>
+                <ol>
+                    {% for label in data.labels[:5] %}
+                    <li>{{ label }} ({{ data.get('values')[loop.index0] }})</li>
+                    {% endfor %}
+                </ol>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="box-div">
+        <h2>Recent trips</h2>
+        <div class="recent-scroll">
+            <table class="recent-table">
+                <tr>
+                    <th>Date</th>
+                    <th>Mode</th>
+                    <th>Line</th>
+                    <th>Vehicle</th>
+                    <th>From</th>
+                    <th>To</th>
+                </tr>
+                {% for trip in dashboard.recent_logs %}
+                <tr>
+                    <td>{% if is_owner %}<a href="{{ url_for('singleLogPage', id=trip.id) }}">{{ trip.date }}</a>{% else %}{{ trip.date }}{% endif %}</td>
+                    <td>{{ trip.mode_display }}</td>
+                    <td>{{ trip.route }}</td>
+                    <td>{{ trip.type }} {{ trip.number }}</td>
+                    <td>{{ trip.start }}</td>
+                    <td>{{ trip.end }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</body>
+</html>
